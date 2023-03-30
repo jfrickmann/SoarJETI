@@ -513,9 +513,9 @@ local function gotoState(newState)
 		
 		-- A few extra counts in 1234
 		if targetType == 3 then
-			counts = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 45, 65, 70, 75, 125, 130, 135, 185, 190, 195}
+			counts = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 45, 65, 70, 75, 125, 130, 135, 185, 190, 195}
 		else
-			counts = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 45}
+			counts = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 45}
 		end
 
 		while #counts > 1 and counts[#counts] >= tgtTime do
@@ -1102,7 +1102,7 @@ local function loop()
 				if #counts > 1 then 
 					counts[#counts] = nil
 				end
-			elseif flightTimer.value > 0 and math.ceil(flightTimer.value / 60) ~= math.ceil(flightTimer.prev / 60) then
+			elseif math.ceil(flightTimer.value / 60) ~= math.ceil(flightTimer.prev / 60) and flightTimer.prev > 0 then
 				playDuration(flightTimer.value)
 			end
 			
