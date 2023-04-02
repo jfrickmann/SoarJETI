@@ -21,6 +21,8 @@ local appName =		"F3K score keeper"
 local author =		"Jesper Frickmann"
 local version =		"1.0.0"
 local SCORE_LOG =	"Log/F3K scores.csv"
+
+-- Persistent variables
 local launchSwitch					-- Launch switch, persistent data
 local timeDial							-- For adjusting Poker calls, persistent data
 local scoreLogSize					-- Max. no. of score records in file
@@ -595,6 +597,126 @@ local function setupTask(taskData)
 	gotoState(STATE_IDLE)
 end -- setupTask(...)
 
+-- Main loop running all the time
+local function loop()
+	local launchPulled = false
+	local launchReleased = false
+
+	if launchSwitch then
+		local launchSw = system.getInputsVal(launchSwitch)
+		launchPulled = (launchSw > 0 and prevLaunchSw <= 0)
+		launchReleased = (launchSw <= 0 and prevLaunchSw > 0)
+		prevLaunchSw = launchSw
+	else
+		-- Show settings menu
+		if activeSubForm == 1 then
+			form.reinit(2)
+		end
+	end
+	
+	flightTimer.update()
+	winTimer.update()
+	flightTime = math.abs(flightTimer.start - flightTimer.value)
+	
+	if state <= STATE_READY and state ~= STATE_FINISHED then
+		flightTimer.set(targetTime())
+	end
+	
+	if state < STATE_WINDOW then
+		if state == STATE_IDLE then
+			winTimer.set(taskWindow)
+
+			-- Automatically start window and flight if launch switch is released
+			if launchPulled then
+				gotoState(STATE_READY)
+			end
+		end
+
+	else
+		-- Did the window expire?
+		if winTimer.prev > 0 and winTimer.value <= 0 then
+			system.playBeep(0, 880, 1000)
+
+			if state < STATE_FLYING then
+				gotoState(STATE_FINISHED)
+			elseif eow then
+				gotoState(STATE_FREEZE)
+			end
+		end
+
+		if state == STATE_WINDOW then
+			if launchPulled then
+				gotoState(STATE_READY)
+			elseif launchReleased then
+				-- Play tone to warn that timer is NOT running
+				system.playBeep(0, 1760, 200)
+			end
+			
+		elseif state == STATE_READY then
+			if launchReleased then
+				gotoState(STATE_FLYING)
+			end
+
+		elseif state >= STATE_FLYING then
+			-- Time counts
+			if flightTimer.value <= counts[#counts] and flightTimer.prev > counts[#counts]	then
+				playDuration(flightTimer.value)
+				if #counts > 1 then 
+					counts[#counts] = nil
+				end
+			elseif math.ceil(flightTimer.value / 60) ~= math.ceil(flightTimer.prev / 60) and flightTimer.prev > 0 then
+				playDuration(flightTimer.value)
+			end
+			
+			if state == STATE_FLYING then
+				-- Within 10 sec. "grace period", cancel the flight
+				if launchPulled then
+					gotoState(STATE_WINDOW)
+				end
+
+				-- After 10 seconds, commit flight
+				if flightTime >= 10 then
+					gotoState(STATE_COMMITTED)
+				end
+				
+			elseif launchPulled then
+				-- Report the time after flight is done
+				if flightTimer.start == 0 then
+					playDuration(flightTime)
+				end
+
+				score()
+				
+				-- Change state
+				if (finalScores and #scores == taskScores) or launches == 0 or (taskWindow > 0 and winTimer.value <= 0) then
+					gotoState(STATE_FINISHED)
+				elseif qr then
+					gotoState(STATE_READY)
+				else
+					gotoState(STATE_WINDOW)
+				end
+			end
+		end
+	end
+
+	-- Update info for user dial targets
+	if state == STATE_COMMITTED and targetType == 2 and (scoreType ~= 3 or taskScores - #scores > 1) then
+		local call = pokerCall()
+		local min = math.floor(call / 60)
+		local sec = call - 60 * min
+		labelInfo = string.format("Next call: %02i:%02i", min, sec)
+	end
+
+	-- "Must make time" tasks
+	if scoreType == 3 then
+		if state == STATE_COMMITTED then
+			pokerCalled = true
+		elseif state < STATE_FLYING and state ~= STATE_FINISHED and winTimer.value < targetTime() then
+			gotoState(STATE_FINISHED)
+		end
+	end
+end -- loop()
+
 ----------------------------------- Menu form --------------------------------------
 
 local function keyPressMenu(key)
@@ -994,7 +1116,7 @@ local function printTele(w, h)
 	end
 end
 
----------------------------------- Main functions ------------------------------------
+---------------------------------- Initialization ------------------------------------
 
 -- Initialization
 local function init()
@@ -1033,126 +1155,6 @@ local function init()
 		end
 		scoreLog[#scoreLog + 1] = fields
 	end
-end
-
--- Main loop running all the time
-local function loop()
-	local launchPulled = false
-	local launchReleased = false
-
-	if launchSwitch then
-		local launchSw = system.getInputsVal(launchSwitch)
-		launchPulled = (launchSw > 0 and prevLaunchSw <= 0)
-		launchReleased = (launchSw <= 0 and prevLaunchSw > 0)
-		prevLaunchSw = launchSw
-	else
-		-- Show settings menu
-		if activeSubForm == 1 then
-			form.reinit(2)
-		end
-	end
-	
-	flightTimer.update()
-	winTimer.update()
-	flightTime = math.abs(flightTimer.start - flightTimer.value)
-	
-	if state <= STATE_READY and state ~= STATE_FINISHED then
-		flightTimer.set(targetTime())
-	end
-	
-	if state < STATE_WINDOW then
-		if state == STATE_IDLE then
-			winTimer.set(taskWindow)
-
-			-- Automatically start window and flight if launch switch is released
-			if launchPulled then
-				gotoState(STATE_READY)
-			end
-		end
-
-	else
-		-- Did the window expire?
-		if winTimer.prev > 0 and winTimer.value <= 0 then
-			system.playBeep(0, 880, 1000)
-
-			if state < STATE_FLYING then
-				gotoState(STATE_FINISHED)
-			elseif eow then
-				gotoState(STATE_FREEZE)
-			end
-		end
-
-		if state == STATE_WINDOW then
-			if launchPulled then
-				gotoState(STATE_READY)
-			elseif launchReleased then
-				-- Play tone to warn that timer is NOT running
-				system.playBeep(0, 1760, 200)
-			end
-			
-		elseif state == STATE_READY then
-			if launchReleased then
-				gotoState(STATE_FLYING)
-			end
-
-		elseif state >= STATE_FLYING then
-			-- Time counts
-			if flightTimer.value <= counts[#counts] and flightTimer.prev > counts[#counts]	then
-				playDuration(flightTimer.value)
-				if #counts > 1 then 
-					counts[#counts] = nil
-				end
-			elseif math.ceil(flightTimer.value / 60) ~= math.ceil(flightTimer.prev / 60) and flightTimer.prev > 0 then
-				playDuration(flightTimer.value)
-			end
-			
-			if state == STATE_FLYING then
-				-- Within 10 sec. "grace period", cancel the flight
-				if launchPulled then
-					gotoState(STATE_WINDOW)
-				end
-
-				-- After 10 seconds, commit flight
-				if flightTime >= 10 then
-					gotoState(STATE_COMMITTED)
-				end
-				
-			elseif launchPulled then
-				-- Report the time after flight is done
-				if flightTimer.start == 0 then
-					playDuration(flightTime)
-				end
-
-				score()
-				
-				-- Change state
-				if (finalScores and #scores == taskScores) or launches == 0 or (taskWindow > 0 and winTimer.value <= 0) then
-					gotoState(STATE_FINISHED)
-				elseif qr then
-					gotoState(STATE_READY)
-				else
-					gotoState(STATE_WINDOW)
-				end
-			end
-		end
-	end
-
-	-- Update info for user dial targets
-	if state == STATE_COMMITTED and targetType == 2 and (scoreType ~= 3 or taskScores - #scores > 1) then
-		local call = pokerCall()
-		local min = math.floor(call / 60)
-		local sec = call - 60 * min
-		labelInfo = string.format("Next call: %02i:%02i", min, sec)
-	end
-
-	-- "Must make time" tasks
-	if scoreType == 3 then
-		if state == STATE_COMMITTED then
-			pokerCalled = true
-		elseif state < STATE_FLYING and state ~= STATE_FINISHED and winTimer.value < targetTime() then
-			gotoState(STATE_FINISHED)
-		end
-	end
-end
+end -- init()
 
 return {init = init, loop = loop, author = author, version = version, name = appName}
