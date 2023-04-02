@@ -846,6 +846,7 @@ local function printTask()
 	local x = 5
 	local y = 6
 	local split
+	local rxBt
 
 	if match(taskScores, 5, 6) then
 		split = 3
@@ -867,7 +868,9 @@ local function printTask()
 	drawTxtRgt(rgt, 16, s2str(flightTimer.value), FONT_MAXI)
 	lcd.drawText(Xt, 60, lang.window .. ":", FONT_BIG)
 	drawTxtRgt(rgt, 76, s2str(winTimer.value), FONT_MAXI)
-	drawTxtCtr(160, 120, labelInfo, FONT_BIG)
+	lcd.drawText(5, 120, labelInfo, FONT_BIG)
+	rxBt = system.getTxTelemetry().rx1Voltage or 0.0
+	drawTxtRgt(rgt, 120, string.format("Rx %0.1f V", rxBt), FONT_BIG)
 end -- printTask()
 
 local function initTask()
