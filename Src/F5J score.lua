@@ -38,6 +38,7 @@ local STATE_SAVE = 4				-- Ready to save
 local state = STATE_INITIAL	-- Current program state
 
 -- Variables
+local lang									-- Language translations
 local flightTimer						-- Flight timer
 local motorTimer						-- Motor run timer
 local flightTime						-- Flight time to save. Needed b/c of weird code flow around form.question
@@ -53,8 +54,8 @@ local scoreLog							-- List of previous scores
 
 local languages = {
 	en = {
-		motor = "Motor",
-		flight = "Flight",
+		motor = "Motor:",
+		flight = "Flight:",
 		motorSwitch = "Motor run switch",
 		timerSwitch = "Timer switch",
 		altiSensor = "Altimeter sensor",
@@ -318,7 +319,6 @@ local function loop()
 	if state == STATE_INITIAL then
 		flightTimer.set(flightTimer.start)
 		motorTimer.set(0)
-		landingPts = 0
 		startHeight = 100 -- default if no Altimeter
 
 		if motorOn then
@@ -513,6 +513,7 @@ local function initTask()
 
 	printForm = function()
 		local tme
+		local h
 		
 		if setTime > 0 then
 			tme = setTime
@@ -520,10 +521,10 @@ local function initTask()
 			tme = flightTimer.value
 		end
 		
-		lcd.drawText(xt, 4, lang.motor .. ":", FONT_BIG)
+		lcd.drawText(xt, 4, lang.motor, FONT_BIG)
 		drawTxtRgt(rgt, 22, s2str(motorTimer.value), FONT_MAXI)
-		lcd.drawText(xt, 76, lang.flight .. ":", FONT_BIG)
-		drawTxtRgt(rgt, 94, s2str(tme), FONT_MAXI)
+		lcd.drawText(xt, 80, lang.flight, FONT_BIG)
+		drawTxtRgt(rgt, 98, s2str(tme), FONT_MAXI)
 		
 		-- Draw flight battery status
 		local x = 16
@@ -535,7 +536,7 @@ local function initTask()
 		-- Draw signal strength
 		local txTele = system.getTxTelemetry()
 		for i = 1, 5 do
-			local h = 10 * i
+			h = 10 * i
 			lcd.drawRectangle(2 + 14 * i, 130 - h, 12, h)
 			for j = 1, 2 do
 				if txTele.RSSI[j]  >= 2 * i - 2 then
@@ -543,7 +544,10 @@ local function initTask()
 				end
 			end
 		end
-		lcd.drawText(100, 94, tostring(txTele.rx1Percent) .. "%", FONT_MAXI)
+
+		h = txTele.rx1Percent * 0.5
+		lcd.drawRectangle(90, 80, 12, 50)
+		lcd.drawFilledRectangle(90, 80 - h, 12, h)
 	end -- printTask()
 
 	setKeys()
@@ -797,10 +801,10 @@ end
 -- Flight timer in telemetry window
 local function printTele(w, h)
 	local h2 = 0.5 * h
-	lcd.drawText(5, 5, lang.motor, FONT_NORMAL)
-	drawTxtRgt(w - 5, 0, s2str(motorTimer.value), FONT_MAXI)
-	lcd.drawText(5, h2 + 5, lang.flight, FONT_NORMAL)
-	drawTxtRgt(w - 5, h2, s2str(flightTimer.value), FONT_MAXI)
+	lcd.drawText(8, 6, lang.motor, FONT_NORMAL)
+	drawTxtRgt(w - 8, 0, s2str(motorTimer.value), FONT_MAXI)
+	lcd.drawText(8, h2 + 6, lang.flight, FONT_NORMAL)
+	drawTxtRgt(w - 8, h2, s2str(flightTimer.value), FONT_MAXI)
 end
 
 ---------------------------------- Initialization ------------------------------------

@@ -47,6 +47,7 @@ local keyPress, printForm 	-- Functions vary by active form
 
 -- Common variables for score keeping
 local labelTask							-- Task menu label
+local taskWindow						-- Length of task window
 local launches							-- Number of launches allowed, -1 for unlimited
 local taskScores						-- Number of scores in task 
 local finalScores						-- Task scores are final
@@ -841,8 +842,7 @@ end
 
 local function printTask()
 	local rgt = lcd.width - 10
-	local Xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00.0")
-	local Xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00.0")
+	local xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00.0")
 	local x = 5
 	local y = 6
 	local split
@@ -864,9 +864,9 @@ local function printTask()
 		end
 	end
 	
-	lcd.drawText(Xt, 0, labelTmr, FONT_BIG)
+	lcd.drawText(xt, 0, labelTmr, FONT_BIG)
 	drawTxtRgt(rgt, 16, s2str(flightTimer.value), FONT_MAXI)
-	lcd.drawText(Xt, 60, lang.window .. ":", FONT_BIG)
+	lcd.drawText(xt, 60, lang.window .. ":", FONT_BIG)
 	drawTxtRgt(rgt, 76, s2str(winTimer.value), FONT_MAXI)
 	lcd.drawText(5, 120, labelInfo, FONT_BIG)
 	rxBt = system.getTxTelemetry().rx1Voltage or 0.0
