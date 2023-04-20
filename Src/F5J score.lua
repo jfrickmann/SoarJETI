@@ -49,6 +49,7 @@ local startHeight						-- Recorded start height
 local nextAltiCall = 0			-- Time stamp for 10 s altitude report
 local activeSubForm					-- Currently active sub form
 local scoreLog							-- List of previous scores
+local muli6sId							-- Sensor id for MULi6S battery sensor
 
 --------------------------------- Language locale ----------------------------------
 
@@ -92,17 +93,40 @@ end
 
 -- Read flight pack charge pct.
 local function fltBatPct()
-	local pct = 0.5 * (system.getInputs("P7") + 1.0)
-	return { pct, pct, pct, pct }
+	local values = { }
+	
+	if muli6sId then
+		-- Find values for cells 1-6 and convert to pct.
+		for i = 1, 6 do
+			local sensor = system.getSensorByID(muli6sId, i)
+			if sensor and sensor.valid then
+				table.insert(values, lipoPct(sensor.value))
+			end
+		end
+		-- Did we somehow loose the sensor?
+		if #values == 0 then
+			muli6sId = nil
+		end
+	else
+		-- Find default sensor id for MULi6S
+    for i, sensor in ipairs(system.getSensors()) do
+      if (sensor.id & 0xFFFF) >= 43185 and (sensor.id & 0xFFFF) <= 43188 then
+        muli6sId = sensor.id
+        break
+      end
+    end
+	end
+return{0.3,0.5,0.7,1.0}	
+--	return values
 end
 
 -- Draw battery cell with charge level
-local function drawBat(x, y, w, h, pct)
-	local h2 = math.floor(pct * (h - 11))
-	lcd.drawFilledRectangle (x + 4, y + h - h2 - 4, w - 8, h2, 170)
-	lcd.drawFilledRectangle (x + 0.5 * w - 5, y, 10, 3)
-	lcd.drawRectangle (x, y + 3, w, h - 3, 5)
-	lcd.drawRectangle (x + 1, y + 4, w - 2, h - 5, 4)
+local function drawBat(x, y, pct)
+	local h = math.floor(pct * 42)
+	lcd.drawFilledRectangle (x + 3, y + 48 - h, 22, h, 142)
+	lcd.drawFilledRectangle (x + 9, y, 10, 3)
+	lcd.drawRectangle (x, y + 3, 28, 48, 4)
+	lcd.drawRectangle (x + 1, y + 4, 26, 46, 3)
 end
 
 -- Safely read switch as boolean
@@ -529,12 +553,14 @@ local function initTask()
 		-- Draw flight battery status
 		local x = 16
 		for i, pct in ipairs(fltBatPct()) do
-			drawBat(x, 6, 28, 52, pct)
+			drawBat(x, 6, pct)
 			x = x + 46
 		end
 		
 		-- Draw signal strength
 		local txTele = system.getTxTelemetry()
+		-- A1/A2
+		lcd.drawText(16, 76, "A", FONT_BOLD)
 		for i = 1, 5 do
 			h = 10 * i
 			lcd.drawRectangle(2 + 14 * i, 130 - h, 12, h)
@@ -544,10 +570,15 @@ local function initTask()
 				end
 			end
 		end
-
-		h = txTele.rx1Percent * 0.5
-		lcd.drawRectangle(90, 80, 12, 50)
-		lcd.drawFilledRectangle(90, 80 - h, 12, h)
+		-- Q%
+		lcd.drawText(110, 76, "Q%", FONT_BOLD)
+		for i = 1, 5 do
+			h = 10 * i
+			lcd.drawRectangle(96 + 14 * i, 130 - h, 12, h)
+			if txTele.rx1Percent  > 20 * i - 20 then
+				lcd.drawFilledRectangle(96 + 14 * i, 130 - h, 12, h, 142)
+			end
+		end
 	end -- printTask()
 
 	setKeys()
