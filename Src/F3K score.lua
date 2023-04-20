@@ -53,7 +53,7 @@ local taskScores						-- Number of scores in task
 local finalScores						-- Task scores are final
 local targetType						-- 1. Huge ladder, 2. Poker, 3. "1234", 4. Big ladder, Else: constant time
 local scoreType							-- 1. Best, 2. Last, 3. Make time
-local currentTask = 1				-- Currently selected task on menu
+local currentTask						-- Currently selected task on menu
 local counts								-- Flight timer countdown
 local winTimer							-- Window timer
 local flightTimer						-- Flight timer
@@ -78,9 +78,11 @@ local languages = {
 		qr = "QR",							-- Quick Relaunch
 		eow = "EoW",						-- End of Window
 		ok = "OK",
-		flight = "Flight",
-		target = "Target",
-		window = "Window",
+		flight = "Flight:",
+		flt = "Flt",
+		target = "Target:",
+		window = "Window:",
+		win = "Win",
 		total = "Total",
 		done = "Done!",
 		launchLeft = "launch left",
@@ -126,6 +128,24 @@ timeDialSteps[16] = { {15,	5}, {30, 10}, { 60, 15}, {120, 30}, {270, 1} } 						
 -------------------------------- Utility functions ---------------------------------
 
 local function void()
+end
+
+-- LiPo flight pack pct.
+local function fltBatPct()
+	local v = system.getTxTelemetry().rx1Voltage or 0.0
+	-- More than 1S?
+	if v > 0 then
+		v = v / math.ceil(v / 4.5)
+	end
+
+	if v <= 3.3 then
+		return 0.0
+	elseif v >= 4.2 then
+		return 1.0
+	else
+		local z = (1.749983661 * (v - 3.3)) ^ 4.897057756
+		return 1.108124863 * z / (1.0 + z)
+	end
 end
 
 -- Draw text right adjusted
@@ -193,6 +213,12 @@ local function saveScores(addNew)
 	
 	io.close(file)
 end -- saveScores()
+
+-- Change to another sub form
+local function gotoForm(f)
+	activeSubForm = f
+	form.reinit()
+end
 
 --------------------------------- Timer functions ----------------------------------
 
@@ -499,7 +525,7 @@ local function gotoState(newState)
 	if state < STATE_WINDOW or state == STATE_FREEZE then
 		winTimer.stop()
 		flightTimer.stop()
-		labelTmr = lang.target .. ":"
+		labelTmr = lang.target
 
 		if state == STATE_FINISHED then
 			system.playBeep(0, 880, 1000)
@@ -508,7 +534,7 @@ local function gotoState(newState)
 	elseif state == STATE_WINDOW then
 		winTimer.run()
 		flightTimer.stop()
-		labelTmr = lang.target .. ":"
+		labelTmr = lang.target
 	
 	elseif state == STATE_FLYING then
 		-- Get ready to count down
@@ -527,7 +553,7 @@ local function gotoState(newState)
 
 		winTimer.run()
 		flightTimer.run()
-		labelTmr = lang.flight .. ":"
+		labelTmr = lang.flight
 		
 		if flightTimer.start > 0 then
 			playDuration(flightTimer.start)
@@ -608,11 +634,6 @@ local function loop()
 		launchPulled = (launchSw > 0 and prevLaunchSw <= 0)
 		launchReleased = (launchSw <= 0 and prevLaunchSw > 0)
 		prevLaunchSw = launchSw
-	else
-		-- Show settings menu
-		if activeSubForm == 1 then
-			form.reinit(2)
-		end
 	end
 	
 	flightTimer.update()
@@ -722,9 +743,9 @@ end -- loop()
 
 local function keyPressMenu(key)
 	if key == KEY_1 then
-		form.reinit(2)
+		gotoForm(2)
 	elseif key == KEY_2 then
-		form.reinit(4)
+		gotoForm(4)
 	end
 end
 
@@ -739,7 +760,7 @@ local function initMenu()
 		local function startTask()
 			currentTask = i
 			setupTask(task)
-			form.reinit(3)
+			gotoForm(3)
 		end
 		
 		form.addLink(startTask, { label = task[1], font = FONT_BIG })
@@ -749,7 +770,7 @@ local function initMenu()
 	form.setTitle(appName)
 	
 	-- Start dummy task
-	setupTask({ "", 0, -1, 2, false, 0, 2	})
+	setupTask({ "", 0, -1, 1, false, 0, 2	})
 	qr = false
 end
 
@@ -770,7 +791,7 @@ local function keyPressSettings(key)
 			form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
 		end
 		if launchSwitch then
-			form.reinit(1)
+			gotoForm(1)
 			form.preventDefault()
 		end
 	end
@@ -834,9 +855,11 @@ local function keyPressTask(key)
 					saveScores(true)
 				end
 			end
-			form.reinit(1)
+			gotoForm(1)
+			form.preventDefault()
+		elseif key == KEY_5 then
+			form.preventDefault()
 		end
-		form.preventDefault()
 	end
 end
 
@@ -869,8 +892,12 @@ local function printTask()
 	lcd.drawText(xt, 60, lang.window .. ":", FONT_BIG)
 	drawTxtRgt(rgt, 76, s2str(winTimer.value), FONT_MAXI)
 	lcd.drawText(5, 120, labelInfo, FONT_BIG)
-	rxBt = system.getTxTelemetry().rx1Voltage or 0.0
-	drawTxtRgt(rgt, 120, string.format("Rx %0.1f V", rxBt), FONT_BIG)
+	
+	local w = math.floor(fltBatPct() * 80)
+	lcd.drawFilledRectangle (217, 120, w, 20, 142)
+	lcd.drawFilledRectangle (300, 126, 3, 8)
+	lcd.drawRectangle (214, 117, 86, 26, 4)
+	lcd.drawRectangle (215, 118, 84, 24, 3)
 end -- printTask()
 
 local function initTask()
@@ -966,7 +993,7 @@ local function initScores()
 			
 		if browseRecord == 0 then
 			if match(key, KEY_5, KEY_ESC) then
-				form.reinit(1)
+				gotoForm(1)
 			end
 			return
 		end
@@ -982,7 +1009,7 @@ local function initScores()
 				selected = 1
 				setEditing(1)
 			elseif match(key, KEY_5, KEY_ESC) then
-				form.reinit(1)
+				gotoForm(1)
 			end
 		elseif editing == 1 then
 			if key == KEY_ENTER then
@@ -1097,14 +1124,18 @@ end
 
 ------------------------------ Other form / telemetry --------------------------------
 
--- Change to another sub form
-local function initForm(f)
-	activeSubForm = f
-	if f == 1 then
-		initMenu()
-	elseif f == 2 then
+-- Called by form.reinit()
+local function reInit()
+	if activeSubForm == 1 then
+		if not launchSwitch then
+			-- Show settings menu
+			gotoForm(2)
+		else
+			initMenu()
+		end
+	elseif activeSubForm == 2 then
 		initSettings()
-	elseif f == 3 then
+	elseif activeSubForm == 3 then
 		initTask()
 	else
 		initScores()
@@ -1113,10 +1144,11 @@ end
 
 -- Flight timer in telemetry window
 local function printTele(w, h)
-	drawTxtRgt(w - 8, 4, s2str(flightTimer.value), FONT_MAXI)
-	for i = 1, #scores do
-		drawTxtRgt(w - 8 - 70 * (i - 1), 48, s2str(scores[i]), FONT_BIG)
-	end
+	local h2 = 0.5 * h
+	lcd.drawText(2, 6, lang.win, FONT_NORMAL)
+	drawTxtRgt(w - 2, 0, s2str(winTimer.value), FONT_MAXI)
+	lcd.drawText(2, h2 + 6, lang.flt, FONT_NORMAL)
+	drawTxtRgt(w - 2, h2, s2str(flightTimer.value), FONT_MAXI)
 end
 
 ---------------------------------- Initialization ------------------------------------
@@ -1124,8 +1156,8 @@ end
 -- Initialization
 local function init()
 	lang = languages[system.getLocale()] or languages.en
-	system.registerForm(1, MENU_MAIN, appName, initForm, function(key) keyPress(key) end, function() printForm() end)
-	system.registerTelemetry(1, lang.flight, 0, printTele)
+	system.registerForm(1, MENU_MAIN, appName, reInit, function(key) keyPress(key) end, function() printForm() end)
+	system.registerTelemetry(1, "F3K", 0, printTele)
 	system.registerControl (1, "Window timer", "Win")
 	system.setControl (1, -1, 0)
 	system.registerControl (2, "Flight timer", "Flt")
@@ -1144,8 +1176,11 @@ local function init()
 	winTimer = newTimer(1, system.pLoad("WinCall"))
 	flightTimer = newTimer(2)
 
+	currentTask = 1
+	activeSubForm = 1
+	
 	-- Start dummy task
-	setupTask({ "", 0, -1, 2, false, 0, 2	})
+	setupTask({ "", 0, -1, 1, false, 0, 2	})
 	
 	-- Read score file
 	local buffer = io.readall(SCORE_LOG)
