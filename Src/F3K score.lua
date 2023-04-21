@@ -130,6 +130,24 @@ timeDialSteps[16] = { {15,	5}, {30, 10}, { 60, 15}, {120, 30}, {270, 1} } 						
 local function void()
 end
 
+-- Read switch as boolean, safely and glitch protected
+local function newSwitch(sw)
+	local lastOn = 0
+	
+	return function()
+		if not sw then return false end
+		local val = system.getInputsVal(sw)
+		if not val then return false end
+		
+		local now = system.getTimeCounter()
+		if val > 0 then
+			lastOn = now
+		end
+		
+		return (now < lastOn + 300), sw
+	end
+end
+
 -- LiPo flight pack pct.
 local function fltBatPct()
 	local v = system.getTxTelemetry().rx1Voltage or 0.0
@@ -626,15 +644,10 @@ end -- setupTask(...)
 
 -- Main loop running all the time
 local function loop()
-	local launchPulled = false
-	local launchReleased = false
-
-	if launchSwitch then
-		local launchSw = system.getInputsVal(launchSwitch)
-		launchPulled = (launchSw > 0 and prevLaunchSw <= 0)
-		launchReleased = (launchSw <= 0 and prevLaunchSw > 0)
-		prevLaunchSw = launchSw
-	end
+	local launchSw = launchSwitch()
+	local launchPulled = (launchSw and not prevLaunchSw)
+	local launchReleased = (not launchSw and prevLaunchSw)
+	prevLaunchSw = launchSw
 	
 	flightTimer.update()
 	winTimer.update()
@@ -779,18 +792,18 @@ end
 local function keyPressSettings(key)
 	if match(key, KEY_5, KEY_ESC) then
 		if key == KEY_5 then
-			system.pSave("LaunchSw", launchSwitch)
+			system.pSave("LaunchSw", select(2, launchSwitch()))
 			system.pSave("TimeDial", timeDial)
 			system.pSave("WinCall", winTimer.interval)
 			system.pSave("LogSize", scoreLogSize)
 		else
-			launchSwitch = system.pLoad("LaunchSw")
+			launchSwitch = newSwitch(system.pLoad("LaunchSw"))
 			timeDial = system.pLoad("TimeDial")
 			winTimer.interval = system.pLoad("WinCall")
 			scoreLogSize = system.pLoad("LogSize") or 40
 			form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
 		end
-		if launchSwitch then
+		if select(2, launchSwitch()) then
 			gotoForm(1)
 			form.preventDefault()
 		end
@@ -803,7 +816,7 @@ local function initSettings()
 
 	form.addRow(2)
 	form.addLabel({ label = lang.launchSwitch, font = FONT_BIG })
-	form.addInputbox(launchSwitch, false, function(v) launchSwitch = v end, { font = FONT_BIG })
+	form.addInputbox(select(2, launchSwitch()), false, function(v) launchSwitch = newSwitch(v) end, { font = FONT_BIG })
 
 	form.addRow(2)
 	form.addLabel({ label = lang.timeDial, font = FONT_BIG, width = 220 })
@@ -817,8 +830,7 @@ local function initSettings()
 	form.addLabel({ label = lang.logSize, font = FONT_BIG, width = 220 })
 	form.addIntbox(scoreLogSize, 5, 200, 40, 0, 5, function(v) scoreLogSize = v end, { font = FONT_BIG })
 	
-	form.addSpacer(300, 25)
-	form.addLabel({ label = "Copyright (C) 2023 Jesper Frickmann" .. string.rep(" ", 15) .. "Version " .. version, font = FONT_MINI })
+	form.addLink(function() gotoForm(5) end, { label = "About " .. appName, font = FONT_BIG })
 end
 
 ----------------------------------- Task form ---------------------------------------
@@ -1122,14 +1134,34 @@ local function initScores()
 	end
 end
 
+------------------------------------ About form -------------------------------------
+
+local function initAbout()
+	form.setTitle("About " .. appName)
+
+	keyPress = function(key)
+		if match(key, KEY_5, KEY_ESC) then
+			form.preventDefault()
+			gotoForm(2)
+		end
+	end
+	
+	printForm = function()
+		lcd.drawText(30, 10, "Copyright 2023 Jesper Frickmann")
+		lcd.drawText(30, 40, "This app is released under the")
+		lcd.drawText(30, 60, "GNU General Public License V3")
+		lcd.drawText(30, 80, "Please see www.gnu.org/licenses")
+		lcd.drawText(30, 110, "Version " .. version)
+	end
+end
+
 ------------------------------ Other form / telemetry --------------------------------
 
 -- Called by form.reinit()
 local function reInit()
 	if activeSubForm == 1 then
-		if not launchSwitch then
-			-- Show settings menu
-			gotoForm(2)
+		if not select(2, launchSwitch()) then
+			gotoForm(5)
 		else
 			initMenu()
 		end
@@ -1137,8 +1169,10 @@ local function reInit()
 		initSettings()
 	elseif activeSubForm == 3 then
 		initTask()
-	else
+	elseif activeSubForm == 4 then
 		initScores()
+	else
+		initAbout()
 	end
 end
 
@@ -1163,14 +1197,14 @@ local function init()
 	system.registerControl (2, "Flight timer", "Flt")
 	system.setControl (2, -1, 0)
 
-	launchSwitch = system.pLoad("LaunchSw")
+	launchSwitch = newSwitch(system.pLoad("LaunchSw"))
 	timeDial = system.pLoad("TimeDial")
 	scoreLogSize = system.pLoad("LogSize") or 40
 	
-	if launchSwitch then
-		prevLaunchSw = system.getInputsVal(launchSwitch)
+	if select(2, launchSwitch()) then
+		prevLaunchSw = launchSwitch()
 	else
-		prevLaunchSw = -1
+		prevLaunchSw = false
 	end
 	
 	winTimer = newTimer(1, system.pLoad("WinCall"))

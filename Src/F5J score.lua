@@ -84,10 +84,10 @@ local function lipoPct(v)
 	if v <= 3.3 then
 		return 0.0
 	elseif v >= 4.2 then
-		return 100.0
+		return 1.0
 	else
 		local z = (1.749983661 * (v - 3.3)) ^ 4.897057756
-		return 110.8124863 * z / (1.0 + z)
+		return 1.108124863 * z / (1.0 + z)
 	end
 end
 
@@ -116,8 +116,8 @@ local function fltBatPct()
       end
     end
 	end
-return{0.3,0.5,0.7,1.0}	
---	return values
+
+	return values
 end
 
 -- Draw battery cell with charge level
@@ -129,12 +129,22 @@ local function drawBat(x, y, pct)
 	lcd.drawRectangle (x + 1, y + 4, 26, 46, 3)
 end
 
--- Safely read switch as boolean
-local function getSwitch(sw)
-	if not sw then return false end
-	local val = system.getInputsVal(sw)
-	if not val then return false end
-	return (val > 0)
+-- Read switch as boolean, safely and glitch protected
+local function newSwitch(sw)
+	local lastOn = 0
+	
+	return function()
+		if not sw then return false end
+		local val = system.getInputsVal(sw)
+		if not val then return false end
+		
+		local now = system.getTimeCounter()
+		if val > 0 then
+			lastOn = now
+		end
+		
+		return (now < lastOn + 300), sw
+	end
 end
 
 -- Safely read altitude
@@ -214,11 +224,11 @@ end -- saveScores()
 
 -- Read persistent variables
 local function readPersistent()
-	motorSwitch = system.pLoad("MotorSw")
-	timerSwitch = system.pLoad("TimerSw")
+	motorSwitch = newSwitch(system.pLoad("MotorSw"))
+	timerSwitch = newSwitch(system.pLoad("TimerSw"))
 	altiSensor = system.pLoad("AltiSensor")
-	altiSwitch = system.pLoad("AltiSw")
-	altiSwitch10 = system.pLoad("AltiSw10")
+	altiSwitch = newSwitch(system.pLoad("AltiSw"))
+	altiSwitch10 = newSwitch(system.pLoad("AltiSw10"))
 	scoreLogSize = system.pLoad("LogSize") or 40
 end	
 
@@ -334,8 +344,8 @@ end
 local function loop()
 	local now = system.getTimeCounter()
 	local cnt -- Count interval
-	local motorOn = getSwitch(motorSwitch)
-	local timerSw = getSwitch(timerSwitch)
+	local motorOn = motorSwitch()
+	local timerSw = timerSwitch()
 
 	flightTimer.update()
 	motorTimer.update()
@@ -403,7 +413,7 @@ local function loop()
 		end
 		
 		-- Altitude report every 10 s?
-		if getSwitch(altiSwitch10) and nextAltiCall >= now then
+		if altiSwitch10() and nextAltiCall >= now then
 			nextAltiCall = now + 10000
 			local alti, unit = getAlti()
 			system.playNumber(alti, 0, unit)
@@ -414,6 +424,7 @@ local function loop()
 			state = STATE_SAVE
 			flightTimer.stop()
 			flightTimer.set(flightTimer.start)
+			flightTime = 0
 			startHeight = 0
 		end
 		
@@ -427,7 +438,7 @@ local function loop()
 				
 				if cnt >= 10 then
 					offTime = 0 -- No more counts
-					if getSwitch(altiSwitch) then
+					if altiSwitch() then
 						local alti, unit = getAlti()
 						system.playNumber(startHeight, 0, unit)
 					else
@@ -437,18 +448,15 @@ local function loop()
 					system.playNumber(cnt, 0)				
 				end
 			end
-		end
-		
-		if not prevTimerSw and timerSw then
+
+		elseif not prevTimerSw and timerSw then
 			state = STATE_SAVE
+			flightTimer.stop()
+			flightTime = flightTimer.start - flightTimer.value
+			playDuration(flightTime)
 		end
 	
 	elseif state == STATE_SAVE then
-		-- Stop timer and record scores
-		flightTimer.stop()
-		flightTime = flightTimer.start - flightTimer.value
-		playDuration(flightTime)
-
 		local save = form.question(lang.saveScores)
 		if save == 1 then
 			saveScores(true)
@@ -604,17 +612,17 @@ local function initSettings()
 	keyPress = function(key)
 		if match(key, KEY_5, KEY_ESC) then
 			if key == KEY_5 then
-				system.pSave("MotorSw", motorSwitch)
-				system.pSave("TimerSw", timerSwitch)
+				system.pSave("MotorSw", select(2, motorSwitch()))
+				system.pSave("TimerSw", select(2, timerSwitch()))
 				system.pSave("AltiSensor", altiSensor)
-				system.pSave("AltiSw", altiSwitch)
-				system.pSave("AltiSw10", altiSwitch10)
+				system.pSave("AltiSw", select(2, altiSwitch()))
+				system.pSave("AltiSw10", select(2, altiSwitch10()))
 				system.pSave("LogSize", scoreLogSize)
 			else
 				readPersistent()
 				form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
 			end
-			if motorSwitch and timerSwitch then
+			if select(2, motorSwitch()) and select(2, timerSwitch()) then
 				form.reinit(1)
 				form.preventDefault()
 			end
@@ -629,11 +637,11 @@ local function initSettings()
 	
 	form.addRow(2)
 	form.addLabel({ label = lang.motorSwitch })
-	form.addInputbox(motorSwitch, false, function(v) motorSwitch = v end)
+	form.addInputbox(select(2, motorSwitch()), false, function(v) motorSwitch = newSwitch(v) end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.timerSwitch })
-	form.addInputbox(timerSwitch, false, function(v) timerSwitch = v end)
+	form.addInputbox(select(2, timerSwitch()), false, function(v) timerSwitch = newSwitch(v) end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.altiSensor })
@@ -641,17 +649,17 @@ local function initSettings()
 
 	form.addRow(2)
 	form.addLabel({ label = lang.altiSwitch })
-	form.addInputbox(altiSwitch, false, function(v) altiSwitch = v end)
+	form.addInputbox(select(2, altiSwitch()), false, function(v) altiSwitch = newSwitch(v) end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.altiSwitch10 })
-	form.addInputbox(altiSwitch10, false, function(v) altiSwitch10 = v end)
+	form.addInputbox(select(2, altiSwitch10()), false, function(v) altiSwitch10 = newSwitch(v) end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.logSize, width = 220 })
 	form.addIntbox(scoreLogSize, 5, 200, 40, 0, 5, function(v) scoreLogSize = v end)
 	
-	form.addLabel({ label = "Copyright (C) 2023 Jesper Frickmann" .. string.rep(" ", 15) .. "Version " .. version, font = FONT_MINI })
+	form.addLink(function() form.reinit(4) end, { label = "About " .. appName })
 end
 
 ----------------------------------- Scores form -------------------------------------
@@ -811,21 +819,44 @@ local function initScores()
 	end -- printForm()
 end
 
------------------------------- Other form / telemetry --------------------------------
+------------------------------------ About form -------------------------------------
+
+local function initAbout()
+	form.setTitle("About " .. appName)
+
+	keyPress = function(key)
+		if match(key, KEY_5, KEY_ESC) then
+			form.preventDefault()
+			form.reinit(2)
+		end
+	end
+	
+	printForm = function()
+		lcd.drawText(30, 10, "Copyright 2023 Jesper Frickmann")
+		lcd.drawText(30, 40, "This app is released under the")
+		lcd.drawText(30, 60, "GNU General Public License V3")
+		lcd.drawText(30, 80, "Please see www.gnu.org/licenses")
+		lcd.drawText(30, 110, "Version " .. version)
+	end
+end
+
+------------------------------ Other form / telemetry -------------------------------
 
 -- Change to another sub form
 local function initForm(f)
 	activeSubForm = f
 	if f == 1 then
-		if motorSwitch and timerSwitch then
+		if select(2, motorSwitch()) and select(2, timerSwitch()) then
 			initTask()
 		else
-			form.reinit(2)
+			form.reinit(4)
 		end
 	elseif f == 2 then
 		initSettings()
-	else
+	elseif f == 3 then
 		initScores()
+	else
+		initAbout()
 	end
 end
 
@@ -849,8 +880,8 @@ local function init()
 	system.setControl (1, -1, 0)
 
 	readPersistent()
-	if timerSwitch then
-		prevTimerSw = getSwitch(timerSwitch)
+	if select(2, timerSwitch()) then
+		prevTimerSw = timerSwitch()
 	else
 		prevTimerSw = true
 	end
