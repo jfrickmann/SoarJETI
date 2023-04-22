@@ -34,7 +34,8 @@ local scoreLogSize					-- Max. no. of score records in file
 local STATE_INITIAL = 1			-- Set flight time before the flight
 local STATE_MOTOR= 2				-- Motor running
 local STATE_GLIDE = 3				-- Gliding
-local STATE_SAVE = 4				-- Ready to save
+local STATE_RESTART = 4			-- Motor restart
+local STATE_SAVE = 5				-- Prompt to save
 local state = STATE_INITIAL	-- Current program state
 
 -- Variables
@@ -129,34 +130,23 @@ local function drawBat(x, y, pct)
 	lcd.drawRectangle (x + 1, y + 4, 26, 46, 3)
 end
 
--- Read switch as boolean, safely and glitch protected
-local function newSwitch(sw)
-	local lastOn = 0
-	
-	return function()
-		if not sw then return false end
-		local val = system.getInputsVal(sw)
-		if not val then return false end
-		
-		local now = system.getTimeCounter()
-		if val > 0 then
-			lastOn = now
-		end
-		
-		return (now < lastOn + 300), sw
-	end
+-- Safely read switch as boolean
+local function getSwitch(sw)
+       if not sw then return false end
+       local val = system.getInputsVal(sw)
+       if not val then return false end
+       return (val > 0)
 end
 
 -- Safely read altitude
 local function getAlti()
-	if not altiSensor then return 0 end
+	if not altiSensor then return 0.0, "" end
 	local id = altiSensor[1]
 	local param = altiSensor[2]
-	if not id then return 0 end
-	if not param then return 0 end
+	if not (id and param) then return 0.0, "" end
 	local alti = system.getSensorByID(id, param)
-	if not alti then return 0 end
-	return alti.value or 0, alti.unit or ""
+	if not alti then return 0.0, "" end
+	return alti.value, alti.unit
 end
 
 -- Draw text right adjusted
@@ -193,6 +183,8 @@ end -- readScores()
 -- Save scores
 local function saveScores(addNew)
 	if addNew then
+		if startHeight == 0 then startHeight = 100 end
+		
 		-- Build new score record
 		local t = system.getDateTime()
 
@@ -224,11 +216,11 @@ end -- saveScores()
 
 -- Read persistent variables
 local function readPersistent()
-	motorSwitch = newSwitch(system.pLoad("MotorSw"))
-	timerSwitch = newSwitch(system.pLoad("TimerSw"))
+	motorSwitch = system.pLoad("MotorSw")
+	timerSwitch = system.pLoad("TimerSw")
 	altiSensor = system.pLoad("AltiSensor")
-	altiSwitch = newSwitch(system.pLoad("AltiSw"))
-	altiSwitch10 = newSwitch(system.pLoad("AltiSw10"))
+	altiSwitch = system.pLoad("AltiSw")
+	altiSwitch10 = system.pLoad("AltiSw10")
 	scoreLogSize = system.pLoad("LogSize") or 40
 end	
 
@@ -344,8 +336,8 @@ end
 local function loop()
 	local now = system.getTimeCounter()
 	local cnt -- Count interval
-	local motorOn = motorSwitch()
-	local timerSw = timerSwitch()
+	local motorOn = getSwitch(motorSwitch)
+	local timerSw = getSwitch(timerSwitch)
 
 	flightTimer.update()
 	motorTimer.update()
@@ -353,14 +345,13 @@ local function loop()
 	if state == STATE_INITIAL then
 		flightTimer.set(flightTimer.start)
 		motorTimer.set(0)
-		startHeight = 100 -- default if no Altimeter
 
 		if motorOn then
 			state = STATE_MOTOR
 			flightTimer.run()
 			motorTimer.run()
 			offTime = 0
-			startHeight = 0
+			startHeight = 0.0
 			form.reinit(1)
 		end
 
@@ -413,7 +404,7 @@ local function loop()
 		end
 		
 		-- Altitude report every 10 s?
-		if altiSwitch10() and nextAltiCall >= now then
+		if getSwitch(altiSwitch10) and nextAltiCall >= now then
 			nextAltiCall = now + 10000
 			local alti, unit = getAlti()
 			system.playNumber(alti, 0, unit)
@@ -421,24 +412,25 @@ local function loop()
 		
 		if motorOn then
 			-- Motor restart; score a zero
-			state = STATE_SAVE
+			state = STATE_RESTART
+			motorTimer.set(0)
+			motorTimer.run()
 			flightTimer.stop()
 			flightTimer.set(flightTimer.start)
 			flightTime = 0
-			startHeight = 0
-		end
+			startHeight = 0.0
 		
-		if offTime > 0 then
+		elseif offTime > 0 then
 			-- 10 sec. count after motor off
 			cnt = math.floor(0.001 * (now - offTime))
-			startHeight = math.max(startHeight, getAlti())
-			
+			local hgt = getAlti()
+			startHeight = math.max(startHeight, hgt)
 			if cnt > prevCnt then
 				prevCnt = cnt
 				
 				if cnt >= 10 then
 					offTime = 0 -- No more counts
-					if altiSwitch() then
+					if getSwitch(altiSwitch) then
 						local alti, unit = getAlti()
 						system.playNumber(startHeight, 0, unit)
 					else
@@ -456,6 +448,12 @@ local function loop()
 			playDuration(flightTime)
 		end
 	
+	elseif state == STATE_RESTART then
+		if not motorOn then
+			motorTimer.stop()			
+			state = STATE_SAVE
+		end
+		
 	elseif state == STATE_SAVE then
 		local save = form.question(lang.saveScores)
 		if save == 1 then
@@ -599,10 +597,12 @@ local function initSettings()
 	local sensorTbl = system.getSensors()
 	local altiIdx = 1
 	local sensors = { }
+	local labels = { }
 	
 	for i, sensor in ipairs(sensorTbl) do
 		if not match(sensor.type, 5, 9) and sensor.param ~= 0 then
 			table.insert(sensors, sensor)
+			table.insert(labels, sensor.label)
 			if altiSensor and altiSensor[1] == sensor.id and altiSensor[2] == sensor.param then
 				altiIdx = #sensors
 			end
@@ -612,17 +612,17 @@ local function initSettings()
 	keyPress = function(key)
 		if match(key, KEY_5, KEY_ESC) then
 			if key == KEY_5 then
-				system.pSave("MotorSw", select(2, motorSwitch()))
-				system.pSave("TimerSw", select(2, timerSwitch()))
+				system.pSave("MotorSw", motorSwitch)
+				system.pSave("TimerSw", timerSwitch)
 				system.pSave("AltiSensor", altiSensor)
-				system.pSave("AltiSw", select(2, altiSwitch()))
-				system.pSave("AltiSw10", select(2, altiSwitch10()))
+				system.pSave("AltiSw", altiSwitch)
+				system.pSave("AltiSw10", altiSwitch10)
 				system.pSave("LogSize", scoreLogSize)
 			else
 				readPersistent()
 				form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
 			end
-			if select(2, motorSwitch()) and select(2, timerSwitch()) then
+			if motorSwitch and timerSwitch then
 				form.reinit(1)
 				form.preventDefault()
 			end
@@ -632,28 +632,32 @@ local function initSettings()
 	printForm = void
 
 	local function altiChanged(idx)
-		altiSensor = { sensors[idx].id, sensors[idx].param }
+		if #sensors >= idx then
+			altiSensor = { sensors[idx].id, sensors[idx].param }
+		else
+			altiSensor = nil
+		end
 	end
 	
 	form.addRow(2)
 	form.addLabel({ label = lang.motorSwitch })
-	form.addInputbox(select(2, motorSwitch()), false, function(v) motorSwitch = newSwitch(v) end)
+	form.addInputbox(motorSwitch, false, function(v) motorSwitch = v end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.timerSwitch })
-	form.addInputbox(select(2, timerSwitch()), false, function(v) timerSwitch = newSwitch(v) end)
+	form.addInputbox(timerSwitch, false, function(v) timerSwitch = v end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.altiSensor })
-	form.addSelectbox(sensors, altiIdx, false, altiChanged)
+	form.addSelectbox(labels, altiIdx, false, altiChanged)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.altiSwitch })
-	form.addInputbox(select(2, altiSwitch()), false, function(v) altiSwitch = newSwitch(v) end)
+	form.addInputbox(altiSwitch, false, function(v) altiSwitch = v end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.altiSwitch10 })
-	form.addInputbox(select(2, altiSwitch10()), false, function(v) altiSwitch10 = newSwitch(v) end)
+	form.addInputbox(altiSwitch10, false, function(v) altiSwitch10 = v end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.logSize, width = 220 })
@@ -805,7 +809,7 @@ local function initScores()
 		lcd.drawText(x[1], 75, lang.heightPenalty, FONT_BIG)
 		drawTxtRgt(x[5], 75, string.format("%1.1f", penalty), FONT_BIG)
 		
-		lcd.drawText(x[1], 125, record[1], FONT_BIG)
+		lcd.drawText(x[1], 110, record[1], FONT_BIG)
 
 		if editing == 1 then
 			drawInverse(x[2], 0, string.format("%02i", min), FONT_BIG)
@@ -846,7 +850,7 @@ end
 local function initForm(f)
 	activeSubForm = f
 	if f == 1 then
-		if select(2, motorSwitch()) and select(2, timerSwitch()) then
+		if motorSwitch and timerSwitch then
 			initTask()
 		else
 			form.reinit(4)
@@ -880,15 +884,9 @@ local function init()
 	system.setControl (1, -1, 0)
 
 	readPersistent()
-	if select(2, timerSwitch()) then
-		prevTimerSw = timerSwitch()
-	else
-		prevTimerSw = true
-	end
-	
+	prevTimerSw = getSwitch(timerSwitch)	
 	flightTimer = newTimer(1)
 	flightTimer.set(600)
-	
 	motorTimer = newTimer()
 	motorTimer.set(0)
 	

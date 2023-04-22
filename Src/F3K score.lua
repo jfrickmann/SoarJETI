@@ -130,22 +130,12 @@ timeDialSteps[16] = { {15,	5}, {30, 10}, { 60, 15}, {120, 30}, {270, 1} } 						
 local function void()
 end
 
--- Read switch as boolean, safely and glitch protected
-local function newSwitch(sw)
-	local lastOn = 0
-	
-	return function()
-		if not sw then return false end
-		local val = system.getInputsVal(sw)
-		if not val then return false end
-		
-		local now = system.getTimeCounter()
-		if val > 0 then
-			lastOn = now
-		end
-		
-		return (now < lastOn + 300), sw
-	end
+-- Safely read switch as boolean
+local function getSwitch(sw)
+       if not sw then return false end
+       local val = system.getInputsVal(sw)
+       if not val then return false end
+       return (val > 0)
 end
 
 -- LiPo flight pack pct.
@@ -644,7 +634,7 @@ end -- setupTask(...)
 
 -- Main loop running all the time
 local function loop()
-	local launchSw = launchSwitch()
+	local launchSw = getSwitch(launchSwitch)
 	local launchPulled = (launchSw and not prevLaunchSw)
 	local launchReleased = (not launchSw and prevLaunchSw)
 	prevLaunchSw = launchSw
@@ -792,18 +782,18 @@ end
 local function keyPressSettings(key)
 	if match(key, KEY_5, KEY_ESC) then
 		if key == KEY_5 then
-			system.pSave("LaunchSw", select(2, launchSwitch()))
+			system.pSave("LaunchSw", launchSwitch)
 			system.pSave("TimeDial", timeDial)
 			system.pSave("WinCall", winTimer.interval)
 			system.pSave("LogSize", scoreLogSize)
 		else
-			launchSwitch = newSwitch(system.pLoad("LaunchSw"))
+			launchSwitch = system.pLoad("LaunchSw")
 			timeDial = system.pLoad("TimeDial")
 			winTimer.interval = system.pLoad("WinCall")
 			scoreLogSize = system.pLoad("LogSize") or 40
 			form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
 		end
-		if select(2, launchSwitch()) then
+		if launchSwitch then
 			gotoForm(1)
 			form.preventDefault()
 		end
@@ -816,7 +806,7 @@ local function initSettings()
 
 	form.addRow(2)
 	form.addLabel({ label = lang.launchSwitch, font = FONT_BIG })
-	form.addInputbox(select(2, launchSwitch()), false, function(v) launchSwitch = newSwitch(v) end, { font = FONT_BIG })
+	form.addInputbox(launchSwitch, false, function(v) launchSwitch = v end, { font = FONT_BIG })
 
 	form.addRow(2)
 	form.addLabel({ label = lang.timeDial, font = FONT_BIG, width = 220 })
@@ -1160,7 +1150,7 @@ end
 -- Called by form.reinit()
 local function reInit()
 	if activeSubForm == 1 then
-		if not select(2, launchSwitch()) then
+		if not launchSwitch then
 			gotoForm(5)
 		else
 			initMenu()
@@ -1197,19 +1187,12 @@ local function init()
 	system.registerControl (2, "Flight timer", "Flt")
 	system.setControl (2, -1, 0)
 
-	launchSwitch = newSwitch(system.pLoad("LaunchSw"))
+	launchSwitch = system.pLoad("LaunchSw")
+	prevLaunchSw = getSwitch(launchSwitch)
 	timeDial = system.pLoad("TimeDial")
-	scoreLogSize = system.pLoad("LogSize") or 40
-	
-	if select(2, launchSwitch()) then
-		prevLaunchSw = launchSwitch()
-	else
-		prevLaunchSw = false
-	end
-	
+	scoreLogSize = system.pLoad("LogSize") or 40	
 	winTimer = newTimer(1, system.pLoad("WinCall"))
 	flightTimer = newTimer(2)
-
 	currentTask = 1
 	activeSubForm = 1
 	
