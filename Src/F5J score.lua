@@ -404,7 +404,7 @@ local function loop()
 		end
 		
 		-- Altitude report every 10 s?
-		if getSwitch(altiSwitch10) and nextAltiCall >= now then
+		if getSwitch(altiSwitch10) and now >= nextAltiCall then
 			nextAltiCall = now + 10000
 			local alti, unit = getAlti()
 			system.playNumber(alti, 0, unit)
@@ -809,7 +809,7 @@ local function initScores()
 		lcd.drawText(x[1], 75, lang.heightPenalty, FONT_BIG)
 		drawTxtRgt(x[5], 75, string.format("%1.1f", penalty), FONT_BIG)
 		
-		lcd.drawText(x[1], 110, record[1], FONT_BIG)
+		lcd.drawText(x[1], 120, record[1], FONT_BIG)
 
 		if editing == 1 then
 			drawInverse(x[2], 0, string.format("%02i", min), FONT_BIG)
