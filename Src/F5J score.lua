@@ -25,6 +25,7 @@ local SCORE_LOG =	"Log/F5J scores.csv"
 -- Presistent variables
 local motorSwitch						-- Logical switch for motor (starts timers)
 local timerSwitch						-- Switch for stopping the timer (and optionally the motor)
+local vMin									-- Battery warning level
 local altiSensor						-- Altimeter sensor (optional)
 local altiSwitch						-- Report launch height
 local altiSwitch10					-- Report altitude every 10 s
@@ -51,6 +52,7 @@ local nextAltiCall = 0			-- Time stamp for 10 s altitude report
 local activeSubForm					-- Currently active sub form
 local scoreLog							-- List of previous scores
 local muli6sId							-- Sensor id for MULi6S battery sensor
+local nxtBatWarning = 0			-- Time stamp for next battery warning
 
 --------------------------------- Language locale ----------------------------------
 
@@ -60,6 +62,7 @@ local languages = {
 		flight = "Flight:",
 		motorSwitch = "Motor run switch",
 		timerSwitch = "Timer switch",
+		vMin = "Battery warning level",
 		altiSensor = "Altimeter sensor",
 		altiSwitch = "Report launch height",
 		altiSwitch10 = "Report alt. every 10s",
@@ -92,6 +95,16 @@ local function lipoPct(v)
 	end
 end
 
+-- Find default sensor id for MULi6S
+local function getMULi6S()
+	for i, sensor in ipairs(system.getSensors()) do
+		if (sensor.id & 0xFFFF) >= 43185 and (sensor.id & 0xFFFF) <= 43188 then
+			muli6sId = sensor.id
+			break
+		end
+	end
+end
+
 -- Read flight pack charge pct.
 local function fltBatPct()
 	local values = { }
@@ -109,13 +122,7 @@ local function fltBatPct()
 			muli6sId = nil
 		end
 	else
-		-- Find default sensor id for MULi6S
-    for i, sensor in ipairs(system.getSensors()) do
-      if (sensor.id & 0xFFFF) >= 43185 and (sensor.id & 0xFFFF) <= 43188 then
-        muli6sId = sensor.id
-        break
-      end
-    end
+		getMULi6S()
 	end
 
 	return values
@@ -218,6 +225,7 @@ end -- saveScores()
 local function readPersistent()
 	motorSwitch = system.pLoad("MotorSw")
 	timerSwitch = system.pLoad("TimerSw")
+	vMin = 0.1 * (system.pLoad("vMin") or 37)
 	altiSensor = system.pLoad("AltiSensor")
 	altiSwitch = system.pLoad("AltiSw")
 	altiSwitch10 = system.pLoad("AltiSw10")
@@ -403,13 +411,6 @@ local function loop()
 			end
 		end
 		
-		-- Altitude report every 10 s?
-		if getSwitch(altiSwitch10) and now >= nextAltiCall then
-			nextAltiCall = now + 10000
-			local alti, unit = getAlti()
-			system.playNumber(alti, 0, unit)
-		end
-		
 		if motorOn then
 			-- Motor restart; score a zero
 			state = STATE_RESTART
@@ -441,11 +442,40 @@ local function loop()
 				end
 			end
 
-		elseif not prevTimerSw and timerSw then
-			state = STATE_SAVE
-			flightTimer.stop()
-			flightTime = flightTimer.start - flightTimer.value
-			playDuration(flightTime)
+		else
+			-- Was trigger pressed to stop timer?
+			if not prevTimerSw and timerSw then
+				state = STATE_SAVE
+				flightTimer.stop()
+				flightTime = flightTimer.start - flightTimer.value
+				playDuration(flightTime)
+			end
+			
+			-- Battery warning?
+			if now >= nxtBatWarning then
+				if muli6sId then
+					local sensor = system.getSensorByID(muli6sId, 7)
+					if sensor and sensor.valid then
+						if sensor.value <= vMin then
+							system.playFile("Low_U.wav")
+							system.vibration(true, 3)
+						end
+						nxtBatWarning = now + 30000
+					else
+						muli6sId = nil
+					end
+				else
+					getMULi6S()
+				end
+			end
+
+			-- Altitude report every 10 s?
+			if getSwitch(altiSwitch10) and now >= nextAltiCall then
+				nextAltiCall = now + 10000
+				local alti, unit = getAlti()
+				system.playNumber(alti, 0, unit)
+			end
+
 		end
 	
 	elseif state == STATE_RESTART then
@@ -614,6 +644,7 @@ local function initSettings()
 			if key == KEY_5 then
 				system.pSave("MotorSw", motorSwitch)
 				system.pSave("TimerSw", timerSwitch)
+				system.pSave("vMin", 10 * vMin)
 				system.pSave("AltiSensor", altiSensor)
 				system.pSave("AltiSw", altiSwitch)
 				system.pSave("AltiSw10", altiSwitch10)
@@ -632,7 +663,7 @@ local function initSettings()
 	printForm = void
 
 	local function altiChanged(idx)
-		if #sensors >= idx then
+		if sensors[idx] then
 			altiSensor = { sensors[idx].id, sensors[idx].param }
 		else
 			altiSensor = nil
@@ -646,6 +677,10 @@ local function initSettings()
 	form.addRow(2)
 	form.addLabel({ label = lang.timerSwitch })
 	form.addInputbox(timerSwitch, false, function(v) timerSwitch = v end)
+
+	form.addRow(2)
+	form.addLabel({ label = lang.vMin })
+	form.addIntbox(10 * vMin, 30, 50, 37, 1, 1, function(v) vMin = 0.1 * v end)
 
 	form.addRow(2)
 	form.addLabel({ label = lang.altiSensor })
