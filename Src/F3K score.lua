@@ -891,7 +891,7 @@ local function printTask()
 	
 	lcd.drawText(xt, 0, labelTmr, FONT_BIG)
 	drawTxtRgt(rgt, 16, s2str(flightTimer.value), FONT_MAXI)
-	lcd.drawText(xt, 60, lang.window .. ":", FONT_BIG)
+	lcd.drawText(xt, 60, lang.window, FONT_BIG)
 	drawTxtRgt(rgt, 76, s2str(winTimer.value), FONT_MAXI)
 	lcd.drawText(5, 120, labelInfo, FONT_BIG)
 	
