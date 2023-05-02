@@ -9,6 +9,8 @@ To install the apps on your transmitter, connect the transmitter to your compute
 
 This is a score keeping app with all of the official F3K tasks and two practice tasks.
 
+It provides its own timers implemented in Lua, and does not rely on the built-in timers. Therefore, if you want to test the app, it may be a good idea to first make a copy of your model and delete the timers you set up, to avoid duplicate time calls. The timers from the app can also be added to the Main Screen as Displayed Telemetry.
+
 It starts and stops the flight timer when you activate the Launch switch. In normal mode, you activate Launch to start the timer, and again to stop it. In "QR" mode, the timer starts again immediately when you release the Launch switch, so you can tip catch and do quick turnarounds. By default, the flight timer freezes at the end of the task window, so you can land and save the flight time.
 
 For Poker and the Quick Relaunch practice task, you can set the time target with a dial.
