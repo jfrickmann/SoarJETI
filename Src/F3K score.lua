@@ -187,6 +187,30 @@ local function match(x, ...)
 	return false
 end
 
+-- Set the key labels in the task menu
+local function setTaskKeys()
+	form.setButton(1, lang.qr, hl(qr))
+	form.setButton(2, lang.eow, hl(eow))
+
+	-- Configure button 3
+	if state <= STATE_PAUSE then
+		form.setButton(3, ":timer", ENABLED)
+	elseif state == STATE_WINDOW then
+		form.setButton(3, ":wait", ENABLED)
+	elseif state >= STATE_COMMITTED then
+		form.setButton(3, ":delete", ENABLED)
+	else
+		form.setButton(3, "", ENABLED)
+	end
+
+	-- Configure button 5
+	if state < STATE_WINDOW or state == STATE_FREEZE then
+		form.setButton(5, lang.ok, ENABLED)
+	else
+		form.setButton(5, lang.ok, DISABLED)
+	end
+end -- setTaskKeys()
+
 -- Save scores
 local function saveScores(addNew)
 	if addNew then
@@ -577,23 +601,7 @@ local function gotoState(newState)
 	end
  
 	if activeSubForm == 3 then
-		-- Configure button 3
-		if state <= STATE_PAUSE then
-			form.setButton(3, ":timer", ENABLED)
-		elseif state == STATE_WINDOW then
-			form.setButton(3, ":wait", ENABLED)
-		elseif state >= STATE_COMMITTED then
-			form.setButton(3, ":delete", ENABLED)
-		else
-			form.setButton(3, "", DISABLED)
-		end
-	
-		-- Configure button 5
-		if state < STATE_WINDOW or state == STATE_FREEZE then
-			form.setButton(5, lang.ok, ENABLED)
-		else
-			form.setButton(5, lang.ok, DISABLED)
-		end
+		setTaskKeys()
 	end
 
 	-- Configure info text label
@@ -849,7 +857,7 @@ local function keyPressTask(key)
 				gotoState(STATE_WINDOW)
 			end
 		end
-	elseif match(key, KEY_5, KEY_ESC) then
+	elseif key == KEY_5 then
 		if state < STATE_WINDOW or state == STATE_FREEZE then
 			if key == KEY_5 and match(state, STATE_PAUSE, STATE_FINISHED, STATE_FREEZE) then
 				local save = form.question(lang.saveScores)
@@ -858,10 +866,11 @@ local function keyPressTask(key)
 				end
 			end
 			gotoForm(1)
-			form.preventDefault()
-		elseif key == KEY_5 then
-			form.preventDefault()
 		end
+		form.preventDefault()
+	elseif key == KEY_ESC and state == STATE_IDLE then
+		gotoForm(1)
+		form.preventDefault()
 	end
 end
 
@@ -905,9 +914,7 @@ end -- printTask()
 local function initTask()
 	keyPress = keyPressTask
 	printForm = printTask
-	form.setButton(1, lang.qr, hl(qr))
-	form.setButton(2, lang.eow, hl(eow))
-	form.setButton(3, ":timer", ENABLED)
+	setTaskKeys()
 	form.setTitle(labelTask)
 end
 
