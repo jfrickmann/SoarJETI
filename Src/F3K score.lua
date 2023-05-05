@@ -585,7 +585,7 @@ local function gotoState(newState)
 		elseif state >= STATE_COMMITTED then
 			form.setButton(3, ":delete", ENABLED)
 		else
-			form.setButton(3, "", DISABLED)
+			form.setButton(3, "", ENABLED)
 		end
 	
 		-- Configure button 5
@@ -849,7 +849,7 @@ local function keyPressTask(key)
 				gotoState(STATE_WINDOW)
 			end
 		end
-	elseif match(key, KEY_5, KEY_ESC) then
+	elseif key == KEY_5 then
 		if state < STATE_WINDOW or state == STATE_FREEZE then
 			if key == KEY_5 and match(state, STATE_PAUSE, STATE_FINISHED, STATE_FREEZE) then
 				local save = form.question(lang.saveScores)
@@ -858,10 +858,11 @@ local function keyPressTask(key)
 				end
 			end
 			gotoForm(1)
-			form.preventDefault()
-		elseif key == KEY_5 then
-			form.preventDefault()
 		end
+		form.preventDefault()
+	elseif key == KEY_ESC and state == STATE_IDLE then
+		gotoForm(1)
+		form.preventDefault()
 	end
 end
 
