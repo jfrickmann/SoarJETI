@@ -315,6 +315,8 @@ local function newTimer(control, interval)
 	end
 	
 	function timer.run()
+		if t0 then return end
+		
 		if timer.start > 0 then
 			d = -1
 		else
@@ -563,12 +565,15 @@ local function gotoState(newState)
 			system.playBeep(0, 880, 1000)
 		end
 	
-	elseif state == STATE_WINDOW then
+	elseif state <= STATE_READY then
 		winTimer.run()
 		flightTimer.stop()
 		labelTmr = lang.target
-	
+		
 	elseif state == STATE_FLYING then
+		flightTimer.run()
+		labelTmr = lang.flight
+		
 		-- Get ready to count down
 		local tgtTime = targetTime()
 		
@@ -583,10 +588,6 @@ local function gotoState(newState)
 			counts[#counts] = nil
 		end
 
-		winTimer.run()
-		flightTimer.run()
-		labelTmr = lang.flight
-		
 		if flightTimer.start > 0 then
 			playDuration(flightTimer.start)
 		else
