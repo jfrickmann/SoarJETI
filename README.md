@@ -1,6 +1,9 @@
 # SoarJETI sailplane apps for JETI radios
 
-You can find the Lua source code for all of the apps under [Src](https://github.com/jfrickmann/SoarJETI/tree/main/Src). Radios with plenty of memory can run these source files as is, but I have also added compiled files under [Apps](https://github.com/jfrickmann/SoarJETI/tree/main/Apps), and these will consume less memory and start up faster, because they do not have to be compiled from source by the radio. I have a DS-12 myself, and I have not tested the apps on other radio models. But I doubt that the score keeping apps will be able to run on older radios with small memories.
+You can find the Lua source code for all of the apps under [Src](https://github.com/jfrickmann/SoarJETI/tree/main/Src). Radios with plenty of memory can run these source files as is, but I have also added compiled files under [Apps](https://github.com/jfrickmann/SoarJETI/tree/main/Apps), and these will consume less memory and start up faster, because they do not have to be compiled from source by the radio.
+
+For older radios with small memories, look under [Stripped](https://github.com/jfrickmann/SoarJETI/tree/main/Stripped). These files have been compiled and stripped for debug info, to further save memory.
+
 In addition to the score keeping apps for sailplanes, I have also included a couple of utility apps that I find useful.
 
 To install the apps on your transmitter, connect the transmitter to your computer, and copy over the files from *either* [Apps](https://github.com/jfrickmann/SoarJETI/tree/main/Apps) *or* [Src](https://github.com/jfrickmann/SoarJETI/tree/main/Src) in this GitHub repository to the *Apps* folder on your transmitter's SD-card. Then, navigate to **Applications**, **User Applications** on your radio's menus, and add the apps to the currently loaded model. Notice that they will be added to the menus as described below for each app.
