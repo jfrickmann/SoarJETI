@@ -206,7 +206,8 @@ local function saveScores(addNew)
 		-- Insert record in scoreLog with max. entries
 		table.insert(scoreLog, record)
 		while #scoreLog > scoreLogSize do
-			for i in 1, #scoreLog do
+			local n = #scoreLog
+			for i = 1, n do
 				scoreLog[i] = scoreLog[i + 1]
 			end
 		end
@@ -295,6 +296,8 @@ local function newTimer(control, interval)
 	end
 	
 	function timer.run()
+		if t0 then return end
+		
 		if timer.start > 0 then
 			d = -1
 		else

@@ -231,7 +231,7 @@ local function saveScores(addNew)
 		-- Insert record in scoreLog with max. entries
 		table.insert(scoreLog, record)
 		while #scoreLog > scoreLogSize do
-			for i in 1, #scoreLog do
+			for i = 1, #scoreLog do
 				scoreLog[i] = scoreLog[i + 1]
 			end
 		end
