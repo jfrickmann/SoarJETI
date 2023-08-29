@@ -138,8 +138,7 @@ local function getSwitch(sw)
 end
 
 -- LiPo flight pack pct.
-local function fltBatPct()
-	local v = system.getTxTelemetry().rx1Voltage or 0.0
+local function fltBatPct(v)
 	-- More than 1S?
 	if v > 0 then
 		v = v / math.ceil(v / 4.5)
@@ -908,11 +907,13 @@ local function printTask()
 	drawTxtRgt(rgt, 76, s2str(winTimer.value), FONT_MAXI)
 	lcd.drawText(5, 120, labelInfo, FONT_BIG)
 	
-	local w = math.floor(fltBatPct() * 80)
+	local v = system.getTxTelemetry().rx1Voltage or 0.0
+	local w = math.floor(fltBatPct(v) * 80)
 	lcd.drawFilledRectangle (217, 120, w, 20, 142)
 	lcd.drawFilledRectangle (300, 126, 3, 8)
 	lcd.drawRectangle (214, 117, 86, 26, 4)
 	lcd.drawRectangle (215, 118, 84, 24, 3)
+	lcd.drawText(242, 120, string.format("%0.1fV", v))
 end -- printTask()
 
 local function initTask()
