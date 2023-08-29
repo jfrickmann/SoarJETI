@@ -1055,7 +1055,9 @@ local function initScores()
 			end
 		else
 			if match(key, KEY_5, KEY_ESC, KEY_ENTER) then
-				updateSelected()
+				if key ~= KEY_ESC then
+					updateSelected()
+				end
 				setEditing(1)
 			end
 			

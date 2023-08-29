@@ -113,7 +113,7 @@ local function fltBatPct()
 		for i = 1, 6 do
 			local sensor = system.getSensorByID(muli6sId, i)
 			if sensor and sensor.valid then
-				table.insert(values, lipoPct(sensor.value))
+				table.insert(values, sensor.value)
 			end
 		end
 		-- Did we somehow loose the sensor?
@@ -128,12 +128,13 @@ local function fltBatPct()
 end
 
 -- Draw battery cell with charge level
-local function drawBat(x, y, pct)
-	local h = math.floor(pct * 42)
+local function drawBat(x, y, v)
+	local h = math.floor(lipoPct(v) * 42)
 	lcd.drawFilledRectangle (x + 3, y + 48 - h, 22, h, 142)
 	lcd.drawFilledRectangle (x + 9, y, 10, 3)
 	lcd.drawRectangle (x, y + 3, 28, 48, 4)
 	lcd.drawRectangle (x + 1, y + 4, 26, 46, 3)
+	lcd.drawText(x + 4, y + 31, string.format("%1.1f", v))
 end
 
 -- Safely read switch as boolean
@@ -590,8 +591,8 @@ local function initTask()
 		
 		-- Draw flight battery status
 		local x = 16
-		for i, pct in ipairs(fltBatPct()) do
-			drawBat(x, 6, pct)
+		for i, v in ipairs(fltBatPct()) do
+			drawBat(x, 6, v)
 			x = x + 46
 		end
 		
@@ -715,6 +716,7 @@ local function initScores()
 	local record
 	local min, sec, landingPts, startHgt
 	local editing
+	local changed
 	local x = {
 		10,
 		310 - lcd.getTextWidth(FONT_BIG, "00:00"),
@@ -736,6 +738,7 @@ local function initScores()
 		sec = tme % 60
 		landingPts = math.tointeger(record[4])
 		startHgt = math.tointeger(record[5])
+		changed = false
 	end
 
 	-- Update buttons when editing level changes
@@ -786,7 +789,7 @@ local function initScores()
 		else
 			if match(key, KEY_5, KEY_ENTER, KEY_ESC) then
 				local saveChanges = 1
-				if key == KEY_ESC then
+				if changed and key == KEY_ESC then
 					saveChanges = form.question(lang.saveChanges)
 				end
 
@@ -803,28 +806,26 @@ local function initScores()
 				editing = (editing - 2) % 4 + 1
 			elseif key == KEY_2 then
 				editing = editing % 4 + 1
-			elseif editing == 1 then
-				if key == KEY_UP then
+			elseif key == KEY_UP then
+				changed = true
+				if editing == 1 then
 					min = (min + 1) % 100
-				elseif key == KEY_DOWN then
-					min = (min - 1) % 100
-				end
-			elseif editing == 2 then
-				if key == KEY_UP then
+				elseif editing == 2 then
 					sec = (sec + 1) % 60
-				elseif key == KEY_DOWN then
-					sec = (sec - 1) % 60
-				end
-			elseif editing == 3 then
-				if key == KEY_UP then
+				elseif editing == 3 then
 					landingPts = (landingPts + 5) % 55
-				elseif key == KEY_DOWN then
-					landingPts = (landingPts - 5) % 55
-				end
-			elseif editing == 4 then
-				if key == KEY_UP then
+				elseif editing == 4 then
 					startHgt = (startHgt + 1) % 1000
-				elseif key == KEY_DOWN then
+				end
+			elseif key == KEY_DOWN then
+				changed = true
+				if editing == 1 then
+					min = (min - 1) % 100
+				elseif editing == 2 then
+					sec = (sec - 1) % 60
+				elseif editing == 3 then
+					landingPts = (landingPts - 5) % 55
+				elseif editing == 4 then
 					startHgt = (startHgt - 1) % 1000
 				end
 			end
