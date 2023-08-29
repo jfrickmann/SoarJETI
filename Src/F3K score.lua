@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F3K score keeper"
 local author =		"Jesper Frickmann"
-local version =		"1.0.0"
+local version =		"1.0.1"
 local SCORE_LOG =	"Log/F3K scores.csv"
 
 -- Persistent variables
@@ -87,10 +87,9 @@ local languages = {
 		done = "Done!",
 		launchLeft = "launch left",
 		launchesLeft = "launches left",
+		saveChanges = "Save changes?",
 		saveScores = "Save scores?",
 		noScores = "No scores yet!",
-		pressedESC = "You pressed ESC",
-		changesNotSaved = "Changes were NOT saved!",
 		launchSwitch = "Launch switch",
 		timeDial = "Time dial for Poker",
 		winCall = "Window time switch",
@@ -790,7 +789,12 @@ end
 
 local function keyPressSettings(key)
 	if match(key, KEY_5, KEY_ESC) then
-		if key == KEY_5 then
+		local saveChanges = 1
+		if key == KEY_ESC then
+			saveChanges = form.question(lang.saveChanges)
+		end
+		
+		if saveChanges == 1 then
 			system.pSave("LaunchSw", launchSwitch)
 			system.pSave("TimeDial", timeDial)
 			system.pSave("WinCall", winTimer.interval)
@@ -800,7 +804,6 @@ local function keyPressSettings(key)
 			timeDial = system.pLoad("TimeDial")
 			winTimer.interval = system.pLoad("WinCall")
 			scoreLogSize = system.pLoad("LogSize") or 40
-			form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
 		end
 		if launchSwitch then
 			gotoForm(1)
@@ -1035,14 +1038,17 @@ local function initScores()
 			elseif match(key, KEY_2, KEY_UP) then
 				selected = selected % math.min(#scores + 1, taskScores) + 1
 			elseif match(key, KEY_5, KEY_ESC) then
-				if key == KEY_5 then
+				local saveChanges = 1
+				if key == KEY_ESC then
+					saveChanges = form.question(lang.saveChanges)
+				end
+
+				if saveChanges == 1 then
 					for i = 1, #scores do
 						record[i + 4] = string.format("%0.1f", scores[i])
 					end
 					record[4] = calcTotalScore(scores, targetType)
 					saveScores(false)
-				else
-					form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
 				end
 				setEditing(0)
 			end

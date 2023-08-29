@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F5J score keeper"
 local author =		"Jesper Frickmann"
-local version =		"1.0.0"
+local version =		"1.0.1"
 local SCORE_LOG =	"Log/F5J scores.csv"
 
 -- Presistent variables
@@ -67,10 +67,9 @@ local languages = {
 		altiSwitch = "Report launch height",
 		altiSwitch10 = "Report alt. every 10s",
 		logSize = "Score log size",
+		saveChanges = "Save changes?",
 		saveScores = "Save scores?",
 		noScores = "No scores yet!",
-		pressedESC = "You pressed ESC",
-		changesNotSaved = "Changes were NOT saved!",
 		flightTime = "Flight time",
 		landingPoints = "Landing points",
 		startHeight = "Start height",
@@ -644,7 +643,12 @@ local function initSettings()
 	
 	keyPress = function(key)
 		if match(key, KEY_5, KEY_ESC) then
-			if key == KEY_5 then
+			local saveChanges = 1
+			if key == KEY_ESC then
+				saveChanges = form.question(lang.saveChanges)
+			end
+
+			if saveChanges == 1 then
 				system.pSave("MotorSw", motorSwitch)
 				system.pSave("TimerSw", timerSwitch)
 				system.pSave("vMin", 10 * vMin)
@@ -654,8 +658,8 @@ local function initSettings()
 				system.pSave("LogSize", scoreLogSize)
 			else
 				readPersistent()
-				form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
 			end
+
 			if motorSwitch and timerSwitch then
 				form.reinit(1)
 				form.preventDefault()
@@ -780,15 +784,20 @@ local function initScores()
 				form.reinit(1)
 			end
 		else
-			if match(key, KEY_5, KEY_ENTER) then
-				record[3] = 60 * min + sec
-				record[4] = landingPts
-				record[5] = startHgt
-				saveScores(false)
-				setEditing(0)
-			elseif key == KEY_ESC then
-				form.question (lang.changesNotSaved, lang.pressedESC, "", 2500, true)
-				updateRecord()
+			if match(key, KEY_5, KEY_ENTER, KEY_ESC) then
+				local saveChanges = 1
+				if key == KEY_ESC then
+					saveChanges = form.question(lang.saveChanges)
+				end
+
+				if saveChanges == 1 then
+					record[3] = 60 * min + sec
+					record[4] = landingPts
+					record[5] = startHgt
+					saveScores(false)
+				else
+					updateRecord()
+				end
 				setEditing(0)
 			elseif key == KEY_1 then
 				editing = (editing - 2) % 4 + 1
