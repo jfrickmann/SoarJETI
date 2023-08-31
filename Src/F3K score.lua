@@ -932,6 +932,7 @@ local function initScores()
 	local taskScores
 	local targetType
 	local editing
+	local changed
 	local selected = 1
 	local min, sec, dec
 	local dx = {
@@ -997,7 +998,11 @@ local function initScores()
 	end
 	
 	local function updateSelected()
-		scores[selected] = 60 * min + sec + 0.1 * dec
+		newValue = 60 * min + sec + 0.1 * dec
+		if scores[selected] ~= newValue then
+			scores[selected] = newValue
+			changed = true
+		end
 	end
 	
 	keyPress = function(key)
@@ -1022,6 +1027,7 @@ local function initScores()
 			elseif key == KEY_3 then
 				selected = 1
 				setEditing(1)
+				changed = false
 			elseif match(key, KEY_5, KEY_ESC) then
 				gotoForm(1)
 			end
@@ -1039,18 +1045,23 @@ local function initScores()
 			elseif match(key, KEY_2, KEY_UP) then
 				selected = selected % math.min(#scores + 1, taskScores) + 1
 			elseif match(key, KEY_5, KEY_ESC) then
-				local saveChanges = 1
-				if key == KEY_ESC then
-					saveChanges = form.question(lang.saveChanges)
-				end
-
-				if saveChanges == 1 then
-					for i = 1, #scores do
-						record[i + 4] = string.format("%0.1f", scores[i])
+				
+				if changed then
+					local saveChanges = 1
+					
+					if key == KEY_ESC then
+						saveChanges = form.question(lang.saveChanges)
 					end
-					record[4] = calcTotalScore(scores, targetType)
-					saveScores(false)
+
+					if saveChanges == 1 then
+						for i = 1, #scores do
+							record[i + 4] = string.format("%0.1f", scores[i])
+						end
+						record[4] = calcTotalScore(scores, targetType)
+						saveScores(false)
+					end
 				end
+				
 				setEditing(0)
 			end
 		else
