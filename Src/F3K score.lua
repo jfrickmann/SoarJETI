@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------------------
 
 -- Constants
-local appName =		"F3K score keeper"
+local appName =		"F3K score"
 local author =		"Jesper Frickmann"
 local version =		"1.0.1"
 local SCORE_LOG =	"Log/F3K scores.csv"
@@ -46,6 +46,7 @@ local activeSubForm					-- Currently active sub form
 local keyPress, printForm 	-- Functions vary by active form
 
 -- Common variables for score keeping
+local tasks									-- Table with task definitions
 local labelTask							-- Task menu label
 local taskWindow						-- Length of task window
 local launches							-- Number of launches allowed, -1 for unlimited
@@ -99,26 +100,28 @@ local languages = {
 
 ------------------------------------ Task data -------------------------------------
 
--- { label, window, launches, scores, final, tgtType, scoreType }
-local tasks = {
-	{ "A. Last flight", 420, -1, 1, false, 300, 2	},
-	{ "B. Two last 3:00", 420, -1, 2, false, 180, 2	},
-	{ "B. Two last 4:00", 600, -1, 2, false, 240, 2	},
-	{ "C. All up last down", 0, 8, 8, true, 180, 2	},
-	{ "D. Two flights only", 600, 2, 2, true, 300, 2	},
-	{ "E. Poker 10 min.", 600, -1, 3, true, 2, 3	},
-	{ "E. Poker 15 min.", 900, -1, 3, true, 2, 3	},
-	{ "F. Three best of six", 600, 6, 3, false, 180, 1	},
-	{ "G. Five best flights", 600, -1, 5, false, 120, 1	},
-	{ "H. 1-2-3-4 any order", 600, -1, 4, false, 3, 1	},
-	{ "I. Three best flights", 600, -1, 3, false, 200, 1	},
-	{ "J. Three last flights", 600, -1, 3, false, 180, 2	},
-	{ "K. Big Ladder", 600, 5, 5, true, 4, 2	},
-	{ "L. One flight only", 600, 1, 1, true, 599, 2	},
-	{ "M. Huge Ladder", 900, 3, 3, true, 1, 2	},
-	{ "Y. Quick Relaunch!", 0, -1, 8, false, 2, 2	},
-	{ "Z. Just Fly!", 0, -1, 8, false, 0, 2	}
-}
+local function defineTasks()
+	-- { label, window, launches, scores, final, tgtType, scoreType }
+	tasks = {
+		{ lang.A, 420, -1, 1, false, 300, 2	},
+		{ lang.B1, 420, -1, 2, false, 180, 2	},
+		{ lang.B2, 600, -1, 2, false, 240, 2	},
+		{ lang.C, 0, 8, 8, true, 180, 2	},
+		{ lang.D, 600, 2, 2, true, 300, 2	},
+		{ lang.E1, 600, -1, 3, true, 2, 3	},
+		{ lang.E2, 900, -1, 3, true, 2, 3	},
+		{ lang.F, 600, 6, 3, false, 180, 1	},
+		{ lang.G, 600, -1, 5, false, 120, 1	},
+		{ lang.H, 600, -1, 4, false, 3, 1	},
+		{ lang.I, 600, -1, 3, false, 200, 1	},
+		{ lang.J, 600, -1, 3, false, 180, 2	},
+		{ lang.K, 600, 5, 5, true, 4, 2	},
+		{ lang.L, 600, 1, 1, true, 599, 2	},
+		{ lang.M, 900, 3, 3, true, 1, 2	},
+		{ lang.Y, 0, -1, 8, false, 2, 2	},
+		{ lang.Z, 0, -1, 8, false, 0, 2	}
+	}
+end
 
 timeDialSteps[6]	= { {30,	5}, {60, 10}, {120, 15}, {210, 30}, {420, 60}, {660, 1} }	-- Poker 10 min.
 timeDialSteps[7]	= { {30, 10}, {90, 15}, {270, 30}, {480, 60}, {960, 1} } 						-- Poker 15 min.
@@ -1207,7 +1210,10 @@ end
 
 -- Initialization
 local function init()
-	lang = languages[system.getLocale()] or languages.en
+	local path = "Apps/" .. appName .. "/"
+	local chunk = loadfile(path .. system.getLocale() .. ".lua") or loadfile(path .. "en.lua")
+	lang = chunk()
+	
 	system.registerForm(1, MENU_MAIN, appName, reInit, function(key) keyPress(key) end, function() printForm() end)
 	system.registerTelemetry(1, "F3K", 0, printTele)
 	system.registerControl (1, "Window timer", "Win")
@@ -1215,6 +1221,7 @@ local function init()
 	system.registerControl (2, "Flight timer", "Flt")
 	system.setControl (2, -1, 0)
 
+	defineTasks()
 	launchSwitch = system.pLoad("LaunchSw")
 	prevLaunchSw = getSwitch(launchSwitch)
 	timeDial = system.pLoad("TimeDial")
