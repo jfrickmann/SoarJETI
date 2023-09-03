@@ -72,32 +72,6 @@ local lastInput = 0					-- For announcing changes in pokerCall
 local lastChange = 0				-- Same
 local timeDialSteps = { }		-- Steps for various time dial tasks
 
---------------------------------- Language locale ----------------------------------
-
-local languages = {
-	en = {
-		qr = "QR",							-- Quick Relaunch
-		eow = "EoW",						-- End of Window
-		ok = "OK",
-		flight = "Flight:",
-		flt = "Flt",
-		target = "Target:",
-		window = "Window:",
-		win = "Win",
-		total = "Total",
-		done = "Done!",
-		launchLeft = "launch left",
-		launchesLeft = "launches left",
-		saveChanges = "Save changes?",
-		saveScores = "Save scores?",
-		noScores = "No scores yet!",
-		launchSwitch = "Launch switch",
-		timeDial = "Time dial for Poker",
-		winCall = "Window time switch",
-		logSize = "Score log size"
-	}
-}
-
 ------------------------------------ Task data -------------------------------------
 
 local function defineTasks()
@@ -608,9 +582,9 @@ local function gotoState(newState)
 
 	-- Configure info text label
 	if state == STATE_PAUSE then
-		labelInfo = string.format(lang.total .. ": %i sec.", totalScore)
+		labelInfo = string.format(lang.total, totalScore)
 	elseif state == STATE_FINISHED then
-		labelInfo = string.format(lang.done .. " %i sec.", totalScore)
+		labelInfo = string.format(lang.done, totalScore)
 	else
 		if launches >= 0 then
 			local s
@@ -739,7 +713,7 @@ local function loop()
 		local call = pokerCall()
 		local min = math.floor(call / 60)
 		local sec = call - 60 * min
-		labelInfo = string.format("Next call: %02i:%02i", min, sec)
+		labelInfo = string.format(lang.nextCall, min, sec)
 	end
 
 	-- "Must make time" tasks
@@ -819,7 +793,7 @@ local function initSettings()
 	printForm = void
 
 	form.addRow(2)
-	form.addLabel({ label = lang.launchSwitch, font = FONT_BIG })
+	form.addLabel({ label = lang.launchSwitch, font = FONT_BIG, width = 220 })
 	form.addInputbox(launchSwitch, false, function(v) launchSwitch = v end, { font = FONT_BIG })
 
 	form.addRow(2)
@@ -1136,7 +1110,7 @@ local function initScores()
 		end
 			
 		y = y + 25
-		lcd.drawText(10, y, string.format("Total: %0.1f s", tonumber(record[4])), FONT_BIG)	
+		lcd.drawText(10, y, string.format(lang.total, tonumber(record[4])), FONT_BIG)	
 
 		y = 120
 		lcd.drawText(10, y, tostring(record[2]), FONT_BIG)
