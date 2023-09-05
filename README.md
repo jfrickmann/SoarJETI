@@ -6,7 +6,9 @@ For older radios with small memories, look under [Stripped](https://github.com/j
 
 In addition to the score keeping apps for sailplanes, I have also included a couple of utility apps that I find useful.
 
-To install the apps on your transmitter, connect the transmitter to your computer, and copy over the files from *either* [Apps](https://github.com/jfrickmann/SoarJETI/tree/main/Apps) *or* [Src](https://github.com/jfrickmann/SoarJETI/tree/main/Src) in this GitHub repository to the *Apps* folder on your transmitter's SD-card. Then, navigate to **Applications**, **User Applications** on your radio's menus, and add the apps to the currently loaded model. Notice that they will be added to the menus as described below for each app.
+To install the apps on your transmitter, connect the transmitter to your computer, and copy over the Lua files (.lua or .lc), as well as the entire [F3K score](https://github.com/jfrickmann/SoarJETI/tree/main/F3K%20score) folder with its contents, to the *Apps* folder on your transmitter's SD-card.
+
+Then, navigate to **Applications**, **User Applications** on your radio's menus, and add the apps to the currently loaded model. Notice that they will be added to the menus as described below for each app.
 
 ## F3K score keeping
 
