@@ -793,19 +793,19 @@ local function initSettings()
 	printForm = void
 
 	form.addRow(2)
-	form.addLabel({ label = lang.launchSwitch, font = FONT_BIG, width = 220 })
+	form.addLabel({ label = lang.launchSwitch, font = FONT_BIG, width = 225 })
 	form.addInputbox(launchSwitch, false, function(v) launchSwitch = v end, { font = FONT_BIG })
 
 	form.addRow(2)
-	form.addLabel({ label = lang.timeDial, font = FONT_BIG, width = 220 })
+	form.addLabel({ label = lang.timeDial, font = FONT_BIG, width = 225 })
 	form.addInputbox(timeDial, true, function(v) timeDial = v end, { font = FONT_BIG })
 
 	form.addRow(2)
-	form.addLabel({ label = lang.winCall, font = FONT_BIG, width = 220 })
+	form.addLabel({ label = lang.winCall, font = FONT_BIG, width = 225 })
 	form.addInputbox(winTimer.interval, true, function(v) winTimer.interval = v end, { font = FONT_BIG })
 	
 	form.addRow(2)
-	form.addLabel({ label = lang.logSize, font = FONT_BIG, width = 220 })
+	form.addLabel({ label = lang.logSize, font = FONT_BIG, width = 225 })
 	form.addIntbox(scoreLogSize, 5, 200, 40, 0, 5, function(v) scoreLogSize = v end, { font = FONT_BIG })
 	
 	form.addLink(function() gotoForm(5) end, { label = "About " .. appName, font = FONT_BIG })
