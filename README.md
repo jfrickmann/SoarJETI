@@ -1,14 +1,12 @@
 # SoarJETI sailplane apps for JETI radios
 
-You can find the Lua source code for all of the apps under [Src](https://github.com/jfrickmann/SoarJETI/tree/main/Src). Radios with plenty of memory can run these source files as is, but I have also added compiled files under [Apps](https://github.com/jfrickmann/SoarJETI/tree/main/Apps), and these will consume less memory and start up faster, because they do not have to be compiled from source by the radio.
+This is a collection of score keeping apps for sailplanes. In addition, I have also included a couple of utility apps that I find useful.
 
-For older radios with small memories, look under [Stripped](https://github.com/jfrickmann/SoarJETI/tree/main/Stripped). These files have been compiled and stripped for debug info, to further save memory.
+## Installation
 
-In addition to the score keeping apps for sailplanes, I have also included a couple of utility apps that I find useful.
-
-To install the apps on your transmitter, connect the transmitter to your computer, and copy over the Lua files (.lua or .lc), as well as the entire [F3K score](https://github.com/jfrickmann/SoarJETI/tree/main/F3K%20score) and [F5J score](https://github.com/jfrickmann/SoarJETI/tree/main/F5J%20score) folders with contents, to the *Apps* folder on your transmitter's SD-card.
-
-Then, navigate to **Applications**, **User Applications** on your radio's menus, and add the apps to the currently loaded model. Notice that they will be added to the menus as described below for each app.
+- Download the [Zip file](https://github.com/jfrickmann/SoarJETI/archive/refs/heads/main.zip) to your computer and extract it.
+- Connect the transmitter to your computer, and copy everyting in the **Apps** folder over to the **Apps** folder on your transmitter's SD-card.
+- Navigate to **Applications**, **User Applications** on your radio's menus, and add the app(s) to the currently loaded model. They will be added to the transmitter menus as described below for each app. You will notice that there are three files for each app. The biggest size file is the compiled Lua file, and this is what I normally load, because it starts up faster and in fact saves some memory over the uncompiled file. The file that has "$" appended to the name is a smaller file where debug info has been stripped off. It is for older radios with smaller memories.
 
 ## F3K score keeping
 
