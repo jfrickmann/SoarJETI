@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------------
---	SoarJETI F3K score language localization																			--
+--	SoarJETI F5J score language localization																			--
 --	Copyright (C) 2023 Jesper Frickmann																						--
 --																																								--
 --	This program is free software: you can redistribute it and/or modify					--
@@ -17,41 +17,20 @@
 ------------------------------------------------------------------------------------
 
 return {
-	qr = "QR",				-- Quick Relaunch
-	eow = "EoW",			-- End of Window
-	ok = "OK",
+	motor = "Moteur:",
 	flight = "Vol:",
-	flt = "Vol",
-	target = "Temps cible:",
-	window = "Travail:",
-	win = "Trv",
-	total = "Total: %i sec.",
-	done = "Fin! %i sec.",
-	nextCall = "Prochaine cible: %02i:%02i",
-	launchLeft = "lancement reste",
-	launchesLeft = "lancements restants",
-	saveChanges = "Enregistrer les modifications?",
-	saveScores = "Enregistrer les vols?",
-	noScores = "Encore pas de vols!",
-	launchSwitch = "Lancement",
-	timeDial = "Molette de temps cible",
-	winCall = "Report temps de travail",
+	motorSwitch = "Interrupteur du moteur",
+	timerSwitch = "Interrupteur de minuterie",
+	vMin = "Niveau d'alarme de la batterie",
+	altiSensor = "Altimètre",
+	altiSwitch = "Annoncer l'hauteur de lancement",
+	altiSwitch10 = "Annoncer l'hauteur toutes 10s",
 	logSize = "Taille du fichier",
-	A = "A. Dernier vol",
-	B1 = "B. Deux derniers vols 3:00",
-	B2 = "B. Deux derniers vols 4:00",
-	C = "C. Tous ensemble, dernier posé",
-	D = "D. Deux vols",
-	E1 = "E. Poker 10 min.",
-	E2 = "E. Poker 15 min.",
-	F = "F. Troix sur six",
-	G = "G. Cinq plus longs vols",
-	H = "H. 1-2-3-4 ordre indifférent",
-	I = "I. Trois plus longs vols",
-	J = "J. Trois derniers vols",
-	K = "K. Grand incrément",
-	L = "L. Un vol",
-	M = "M. Très grand incrément",
-	Y = "Y. Relance rapide!",
-	Z = "Z. Volez!"
+	saveChanges = "Enregistrer les modifications?",
+	saveScores = "Enregistrer le vol?",
+	noScores = "Encore pas de vols!",
+	flightTime = "Temps de vol",
+	landingPoints = "Points d'atterrissage",
+	startHeight = "Hauteur de lancement",
+	heightPenalty = "Déduction d'hauteur"
 }

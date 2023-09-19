@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------------------
 
 -- Constants
-local appName =		"F5J score keeper"
+local appName =		"F5J score"
 local author =		"Jesper Frickmann"
 local version =		"1.0.1"
 local SCORE_LOG =	"Log/F5J scores.csv"
@@ -54,32 +54,25 @@ local scoreLog							-- List of previous scores
 local muli6sId							-- Sensor id for MULi6S battery sensor
 local nxtBatWarning = 0			-- Time stamp for next battery warning
 
---------------------------------- Language locale ----------------------------------
-
-local languages = {
-	en = {
-		motor = "Motor:",
-		flight = "Flight:",
-		motorSwitch = "Motor run switch",
-		timerSwitch = "Timer switch",
-		vMin = "Battery warning level",
-		altiSensor = "Altimeter sensor",
-		altiSwitch = "Report launch height",
-		altiSwitch10 = "Report alt. every 10s",
-		logSize = "Score log size",
-		saveChanges = "Save changes?",
-		saveScores = "Save scores?",
-		noScores = "No scores yet!",
-		flightTime = "Flight time",
-		landingPoints = "Landing points",
-		startHeight = "Start height",
-		heightPenalty = "Height penalty"
-	}
-}
-
 -------------------------------- Utility functions ---------------------------------
 
 local function void()
+end
+
+-- Draw inverse text
+local function drawInverse(x, y, txt, font, rgt)
+	local w = lcd.getTextWidth(font, txt)
+	local h = lcd.getTextHeight(font)
+	local rb, gb, bb = lcd.getBgColor()
+	local rf, gf, bf = lcd.getFgColor()
+	
+	if rgt then
+		x = x - w
+	end
+	lcd.drawFilledRectangle(x, y, w, h)
+	lcd.setColor(rb, gb, bb, 255)
+	lcd.drawText(x, y, txt, font)
+	lcd.setColor(rf, gf, bf, 255)
 end
 
 -- LiPo battery pct. from V
@@ -511,52 +504,55 @@ local function initTask()
 
 	local function setKeys()
 		if state == STATE_INITIAL then
-			form.setButton(1, ":down", ENABLED)
-			form.setButton(2, ":up", ENABLED)
-			form.setButton(3, ":tools", ENABLED)
-			form.setButton(4, ":file", ENABLED)
+			form.setButton(1, ":tools", ENABLED)
+			form.setButton(2, ":file", ENABLED)
 		else
-			if setTime == 0 then
-				form.setButton(1, ":down", DISABLED)
-				form.setButton(2, ":up", DISABLED)
-				form.setButton(3, ":timer", ENABLED)
-			else
-				if setTime <= 60 then
-					form.setButton(1, ":down", DISABLED)
-				else
-					form.setButton(1, ":down", ENABLED)
-				end
-				form.setButton(2, ":up", ENABLED)
-				form.setButton(3, ":timer", HIGHLIGHTED)
-			end
+			form.setButton(1, ":tools", DISABLED)
+			form.setButton(2, ":file", DISABLED)
+		end
+
+		if setTime == 0 then
+			form.setButton(3, ":timer", ENABLED)
+		else
+			form.setButton(3, ":timer", HIGHLIGHTED)
 		end
 	end -- setKeys()
 
 	keyPress = function(key)
 		if state == STATE_INITIAL then
-			if key == KEY_1 then
-				if flightTimer.start > 60 then
-					flightTimer.set(flightTimer.start - 60)
+			if setTime == 0 then
+				if key == KEY_1 then
+					form.reinit(2)
+				elseif key == KEY_2 then
+					form.reinit(3)
+				elseif key == KEY_3 then
+					setTime = flightTimer.start
 				end
-			elseif key == KEY_2 then
-				flightTimer.set(flightTimer.start + 60)
-			elseif key == KEY_3 then
-				form.reinit(2)
-			elseif key == KEY_4 then
-				form.reinit(3)
+			else
+				if match(key, KEY_3, KEY_5, KEY_ENTER, KEY_ESC) then
+					setTime = 0
+				elseif key == KEY_DOWN then
+					if setTime > 60 then
+						setTime = setTime - 60
+						flightTimer.set(setTime)
+					end
+				elseif key == KEY_UP then
+					setTime = setTime + 60
+					flightTimer.set(setTime)
+				end
+				form.preventDefault()
 			end
-			
 		else
 			if setTime == 0 then
 				if key == KEY_3 then
 					setTime = math.max(60, 60 * math.floor(flightTimer.value / 60))
 				end
 			else
-				if key == KEY_1 then
+				if key == KEY_DOWN then
 					if setTime > 60 then
 						setTime = setTime - 60
 					end
-				elseif key == KEY_2 then
+				elseif key == KEY_UP then
 					setTime = setTime + 60
 				elseif match(key, KEY_3, KEY_ESC) then
 					setTime = 0
@@ -566,28 +562,25 @@ local function initTask()
 					flightTimer.run()
 					setTime = 0
 				end
-				
 				form.preventDefault()
 			end
 		end
-		
 		setKeys()
 	end
 
 	printForm = function()
-		local tme
 		local h
 		
-		if setTime > 0 then
-			tme = setTime
-		else
-			tme = flightTimer.value
-		end
-		
 		lcd.drawText(xt, 4, lang.motor, FONT_BIG)
-		drawTxtRgt(rgt, 22, s2str(motorTimer.value), FONT_MAXI)
-		lcd.drawText(xt, 80, lang.flight, FONT_BIG)
-		drawTxtRgt(rgt, 98, s2str(tme), FONT_MAXI)
+		drawTxtRgt(rgt, 26, s2str(motorTimer.value), FONT_MAXI)
+
+		lcd.drawText(xt, 76, lang.flight, FONT_BIG)
+		if setTime > 0 then
+			drawInverse(rgt, 98, s2str(setTime), FONT_MAXI, true)
+		else
+			drawTxtRgt(rgt, 98, s2str(flightTimer.value), FONT_MAXI)
+		end
+
 		
 		-- Draw flight battery status
 		local x = 16
@@ -600,13 +593,15 @@ local function initTask()
 		local txTele = system.getTxTelemetry()
 		-- A1/A2
 		lcd.drawText(16, 76, "A", FONT_BOLD)
+		local rssi = math.max(txTele.RSSI[1], txTele.RSSI[2])
+		if rssi > 1 then
+			rssi = 1 + 0.5 * rssi
+		end
 		for i = 1, 5 do
 			h = 10 * i
 			lcd.drawRectangle(2 + 14 * i, 130 - h, 12, h)
-			for j = 1, 2 do
-				if txTele.RSSI[j]  >= 2 * i - 2 then
-					lcd.drawFilledRectangle(2 + 14 * i, 130 - h, 12, h, 85)
-				end
+			if rssi >= i then
+				lcd.drawFilledRectangle(2 + 14 * i, 130 - h, 12, h, 142)
 			end
 		end
 		-- Q%
@@ -679,31 +674,31 @@ local function initSettings()
 	end
 	
 	form.addRow(2)
-	form.addLabel({ label = lang.motorSwitch })
+	form.addLabel({ label = lang.motorSwitch, width = 225 })
 	form.addInputbox(motorSwitch, false, function(v) motorSwitch = v end)
 
 	form.addRow(2)
-	form.addLabel({ label = lang.timerSwitch })
+	form.addLabel({ label = lang.timerSwitch, width = 225 })
 	form.addInputbox(timerSwitch, false, function(v) timerSwitch = v end)
 
 	form.addRow(2)
-	form.addLabel({ label = lang.vMin })
+	form.addLabel({ label = lang.vMin, width = 225 })
 	form.addIntbox(10 * vMin, 30, 50, 37, 1, 1, function(v) vMin = 0.1 * v end)
 
 	form.addRow(2)
-	form.addLabel({ label = lang.altiSensor })
+	form.addLabel({ label = lang.altiSensor, width = 225 })
 	form.addSelectbox(labels, altiIdx, false, altiChanged)
 
 	form.addRow(2)
-	form.addLabel({ label = lang.altiSwitch })
+	form.addLabel({ label = lang.altiSwitch, width = 225 })
 	form.addInputbox(altiSwitch, false, function(v) altiSwitch = v end)
 
 	form.addRow(2)
-	form.addLabel({ label = lang.altiSwitch10 })
+	form.addLabel({ label = lang.altiSwitch10, width = 225 })
 	form.addInputbox(altiSwitch10, false, function(v) altiSwitch10 = v end)
 
 	form.addRow(2)
-	form.addLabel({ label = lang.logSize, width = 220 })
+	form.addLabel({ label = lang.logSize, width = 225 })
 	form.addIntbox(scoreLogSize, 5, 200, 40, 0, 5, function(v) scoreLogSize = v end)
 	
 	form.addLink(function() form.reinit(4) end, { label = "About " .. appName })
@@ -724,9 +719,6 @@ local function initScores()
 		310 - lcd.getTextWidth(FONT_BIG, "000"),
 		310
 	}
-	local rb, gb, bb = lcd.getBgColor()
-	local rf, gf, bf = lcd.getFgColor()
-	
 	form.setTitle(lang.noScores)
 
 	-- Update form when record changes
@@ -832,15 +824,6 @@ local function initScores()
 		end		
 	end -- keyPress()
 
-	local function drawInverse(x, y, txt, font)
-		local w = lcd.getTextWidth(font, txt)
-		local h = lcd.getTextHeight(font)
-		lcd.drawFilledRectangle(x, y, w, h)
-		lcd.setColor(rb, gb, bb, 255)
-		lcd.drawText(x, y, txt, font)
-		lcd.setColor(rf, gf, bf, 255)
-	end
-
 	printForm = function()
 		if browseRecord == 0 then return end
 		
@@ -925,7 +908,10 @@ end
 
 -- Initialization
 local function init()
-	lang = languages[system.getLocale()] or languages.en
+	local path = "Apps/" .. appName .. "/"
+	local chunk = loadfile(path .. system.getLocale() .. ".lua") or loadfile(path .. "en.lua")
+	lang = chunk()
+	
 	system.registerForm(1, MENU_MAIN, appName, initForm, function(key) keyPress(key) end, function() printForm() end)
 	system.registerTelemetry(1, appName, 0, printTele)
 	system.registerControl (1, "Flight timer", "Flt")
