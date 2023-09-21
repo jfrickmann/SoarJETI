@@ -17,6 +17,7 @@
 ------------------------------------------------------------------------------------
 
 return {
+	settings = "Settings",
 	motor = "Motor:",
 	flight = "Flight:",
 	motorSwitch = "Motor run switch",

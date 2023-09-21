@@ -17,6 +17,7 @@
 ------------------------------------------------------------------------------------
 
 return {
+	settings = "Paramètres",
 	motor = "Moteur:",
 	flight = "Vol:",
 	motorSwitch = "Interrupteur du moteur",

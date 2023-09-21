@@ -789,6 +789,7 @@ local function keyPressSettings(key)
 end
 
 local function initSettings()
+	form.setTitle(lang.settings)
 	keyPress = keyPressSettings
 	printForm = void
 

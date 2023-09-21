@@ -626,7 +626,8 @@ local function initSettings()
 	local altiIdx = 1
 	local sensors = { }
 	local labels = { }
-	
+	form.setTitle(lang.settings)
+
 	for i, sensor in ipairs(sensorTbl) do
 		if not match(sensor.type, 5, 9) and sensor.param ~= 0 then
 			table.insert(sensors, sensor)

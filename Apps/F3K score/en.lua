@@ -33,6 +33,7 @@ return {
 	saveChanges = "Save changes?",
 	saveScores = "Save scores?",
 	noScores = "No scores yet!",
+	settings = "Settings",
 	launchSwitch = "Launch switch",
 	timeDial = "Time dial for Poker",
 	winCall = "Window time switch",

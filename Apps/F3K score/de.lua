@@ -33,6 +33,7 @@ return {
 	saveChanges = "Änderungen speichern?",
 	saveScores = "Flüge speichern?",
 	noScores = "Noch keine Flüge!",
+	settings = "Einstellungen",
 	launchSwitch = "Startschalter",
 	timeDial = "Nominierung Poker",
 	winCall = "Rahmenzeitschalter",

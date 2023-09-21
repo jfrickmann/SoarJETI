@@ -33,6 +33,7 @@ return {
 	saveChanges = "Enregistrer les modifications?",
 	saveScores = "Enregistrer les vols?",
 	noScores = "Encore pas de vols!",
+	settings = "Paramètres",
 	launchSwitch = "Lancement",
 	timeDial = "Molette de temps cible",
 	winCall = "Report temps de travail",
