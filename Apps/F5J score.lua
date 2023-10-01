@@ -571,17 +571,16 @@ local function initTask()
 	printForm = function()
 		local h
 		
-		lcd.drawText(xt, 4, lang.motor, FONT_BIG)
-		drawTxtRgt(rgt, 26, s2str(motorTimer.value), FONT_MAXI)
-
-		lcd.drawText(xt, 76, lang.flight, FONT_BIG)
+		lcd.drawText(xt, 4, lang.flight, FONT_BIG)
 		if setTime > 0 then
-			drawInverse(rgt, 98, s2str(setTime), FONT_MAXI, true)
+			drawInverse(rgt, 26, s2str(setTime), FONT_MAXI, true)
 		else
-			drawTxtRgt(rgt, 98, s2str(flightTimer.value), FONT_MAXI)
+			drawTxtRgt(rgt, 26, s2str(flightTimer.value), FONT_MAXI)
 		end
 
-		
+		lcd.drawText(xt, 76, lang.motor, FONT_BIG)
+		drawTxtRgt(rgt, 98, s2str(motorTimer.value), FONT_MAXI)
+
 		-- Draw flight battery status
 		local x = 16
 		for i, v in ipairs(fltBatPct()) do
@@ -899,10 +898,10 @@ end
 -- Flight timer in telemetry window
 local function printTele(w, h)
 	local h2 = 0.5 * h
-	lcd.drawText(8, 6, lang.motor, FONT_NORMAL)
-	drawTxtRgt(w - 8, 0, s2str(motorTimer.value), FONT_MAXI)
-	lcd.drawText(8, h2 + 6, lang.flight, FONT_NORMAL)
-	drawTxtRgt(w - 8, h2, s2str(flightTimer.value), FONT_MAXI)
+	lcd.drawText(8, 6, lang.flight, FONT_NORMAL)
+	drawTxtRgt(w - 8, 0, s2str(flightTimer.value), FONT_MAXI)
+	lcd.drawText(8, h2 + 6, lang.motor, FONT_NORMAL)
+	drawTxtRgt(w - 8, h2, s2str(motorTimer.value), FONT_MAXI)
 end
 
 ---------------------------------- Initialization ------------------------------------
