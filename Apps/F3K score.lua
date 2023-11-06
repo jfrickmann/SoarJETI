@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F3K score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.1"
+local version =		"1.0.2"
 local SCORE_LOG =	"Log/F3K scores.csv"
 
 -- Persistent variables
@@ -757,7 +757,7 @@ local function initMenu()
 	form.setTitle(appName)
 	
 	-- Start dummy task
-	setupTask({ "", 0, -1, 1, false, 0, 2	})
+	setupTask({ "", 0, -1, 8, false, 0, 2	})
 	qr = false
 end
 
@@ -1190,7 +1190,8 @@ local function init()
 	lang = chunk()
 	
 	system.registerForm(1, MENU_MAIN, appName, reInit, function(key) keyPress(key) end, function() printForm() end)
-	system.registerTelemetry(1, "F3K", 0, printTele)
+	system.registerTelemetry(1, system.getProperty("Model"), 4, printTask)
+	system.registerTelemetry(2, appName, 2, printTele)
 	system.registerControl (1, "Window timer", "Win")
 	system.setControl (1, -1, 0)
 	system.registerControl (2, "Flight timer", "Flt")
@@ -1207,7 +1208,7 @@ local function init()
 	activeSubForm = 1
 	
 	-- Start dummy task
-	setupTask({ "", 0, -1, 1, false, 0, 2	})
+	setupTask({ "", 0, -1, 8, false, 0, 2	})
 	
 	-- Read score file
 	local buffer = io.readall(SCORE_LOG)

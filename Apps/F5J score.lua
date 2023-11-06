@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F5J score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.1"
+local version =		"1.0.2"
 local SCORE_LOG =	"Log/F5J scores.csv"
 
 -- Presistent variables
@@ -53,6 +53,7 @@ local activeSubForm					-- Currently active sub form
 local scoreLog							-- List of previous scores
 local muli6sId							-- Sensor id for MULi6S battery sensor
 local nxtBatWarning = 0			-- Time stamp for next battery warning
+local setTime = 0						-- Set flight time
 
 -------------------------------- Utility functions ---------------------------------
 
@@ -497,10 +498,56 @@ end -- loop()
 
 ----------------------------------- Task form ---------------------------------------
 
-local function initTask()
+local function printTask()
 	local rgt = lcd.width - 20
 	local xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00")
-	local setTime = 0
+	local h
+	
+	lcd.drawText(xt, 4, lang.flight, FONT_BIG)
+	if setTime > 0 then
+		drawInverse(rgt, 26, s2str(setTime), FONT_MAXI, true)
+	else
+		drawTxtRgt(rgt, 26, s2str(flightTimer.value), FONT_MAXI)
+	end
+
+	lcd.drawText(xt, 76, lang.motor, FONT_BIG)
+	drawTxtRgt(rgt, 98, s2str(motorTimer.value), FONT_MAXI)
+
+	-- Draw flight battery status
+	local x = 16
+	for i, v in ipairs(fltBatPct()) do
+		drawBat(x, 6, v)
+		x = x + 46
+	end
+	
+	-- Draw signal strength
+	local txTele = system.getTxTelemetry()
+	-- A1/A2
+	lcd.drawText(16, 76, "A", FONT_BOLD)
+	local rssi = math.max(txTele.RSSI[1], txTele.RSSI[2])
+	if rssi > 1 then
+		rssi = 1 + 0.5 * rssi
+	end
+	for i = 1, 5 do
+		h = 10 * i
+		lcd.drawRectangle(2 + 14 * i, 130 - h, 12, h)
+		if rssi >= i then
+			lcd.drawFilledRectangle(2 + 14 * i, 130 - h, 12, h, 142)
+		end
+	end
+	-- Q%
+	lcd.drawText(110, 76, "Q%", FONT_BOLD)
+	for i = 1, 5 do
+		h = 10 * i
+		lcd.drawRectangle(96 + 14 * i, 130 - h, 12, h)
+		if txTele.rx1Percent  > 20 * i - 20 then
+			lcd.drawFilledRectangle(96 + 14 * i, 130 - h, 12, h, 142)
+		end
+	end
+end -- printTask()
+
+local function initTask()
+	setTime = 0
 
 	local function setKeys()
 		if state == STATE_INITIAL then
@@ -568,52 +615,7 @@ local function initTask()
 		setKeys()
 	end
 
-	printForm = function()
-		local h
-		
-		lcd.drawText(xt, 4, lang.flight, FONT_BIG)
-		if setTime > 0 then
-			drawInverse(rgt, 26, s2str(setTime), FONT_MAXI, true)
-		else
-			drawTxtRgt(rgt, 26, s2str(flightTimer.value), FONT_MAXI)
-		end
-
-		lcd.drawText(xt, 76, lang.motor, FONT_BIG)
-		drawTxtRgt(rgt, 98, s2str(motorTimer.value), FONT_MAXI)
-
-		-- Draw flight battery status
-		local x = 16
-		for i, v in ipairs(fltBatPct()) do
-			drawBat(x, 6, v)
-			x = x + 46
-		end
-		
-		-- Draw signal strength
-		local txTele = system.getTxTelemetry()
-		-- A1/A2
-		lcd.drawText(16, 76, "A", FONT_BOLD)
-		local rssi = math.max(txTele.RSSI[1], txTele.RSSI[2])
-		if rssi > 1 then
-			rssi = 1 + 0.5 * rssi
-		end
-		for i = 1, 5 do
-			h = 10 * i
-			lcd.drawRectangle(2 + 14 * i, 130 - h, 12, h)
-			if rssi >= i then
-				lcd.drawFilledRectangle(2 + 14 * i, 130 - h, 12, h, 142)
-			end
-		end
-		-- Q%
-		lcd.drawText(110, 76, "Q%", FONT_BOLD)
-		for i = 1, 5 do
-			h = 10 * i
-			lcd.drawRectangle(96 + 14 * i, 130 - h, 12, h)
-			if txTele.rx1Percent  > 20 * i - 20 then
-				lcd.drawFilledRectangle(96 + 14 * i, 130 - h, 12, h, 142)
-			end
-		end
-	end -- printTask()
-
+	printForm = printTask
 	setKeys()
 	form.setTitle(appName)
 end
@@ -913,7 +915,9 @@ local function init()
 	lang = chunk()
 	
 	system.registerForm(1, MENU_MAIN, appName, initForm, function(key) keyPress(key) end, function() printForm() end)
-	system.registerTelemetry(1, appName, 0, printTele)
+	system.registerTelemetry(1, system.getProperty("Model"), 4, printTask)
+	system.registerTelemetry(2, appName, 2, printTele)
+
 	system.registerControl (1, "Flight timer", "Flt")
 	system.setControl (1, -1, 0)
 
