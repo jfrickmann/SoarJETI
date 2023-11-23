@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F3K score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.2"
+local version =		"1.0.3"
 local SCORE_LOG =	"Log/F3K scores.csv"
 
 -- Persistent variables
@@ -57,6 +57,7 @@ local scoreType							-- 1. Best, 2. Last, 3. Make time
 local currentTask						-- Currently selected task on menu
 local counts								-- Flight timer countdown
 local winTimer							-- Window timer
+local winDelay							-- Countdown for delayed window start
 local flightTimer						-- Flight timer
 local flightTime						-- Flight flown
 local scores = { }					-- List of saved scores
@@ -639,6 +640,18 @@ local function loop()
 			if launchPulled then
 				gotoState(STATE_READY)
 			end
+			
+			-- Did we start the window delay timer?
+			if winDelay then
+				winDelay.update()
+				if winDelay.value <= 0 then
+					winDelay = nil
+					system.playBeep(0, 880, 500)
+					gotoState(STATE_WINDOW)
+				elseif math.ceil(winDelay.value) ~= math.ceil(winDelay.prev) then
+					playDuration(winDelay.value)
+				end
+			end
 		end
 
 	else
@@ -822,7 +835,17 @@ local function keyPressTask(key)
 		eow = not eow
 		form.setButton(2, lang.eow, hl(eow))
 	elseif key == KEY_3 then
-		if state <= STATE_PAUSE then
+		if state == STATE_IDLE then
+			if winDelay then
+				winDelay = nil
+				form.setButton(3, ":timer", ENABLED)
+			else
+				winDelay = newTimer()
+				winDelay.set(10.1)
+				winDelay.run()
+				form.setButton(3, ":timer", HIGHLIGHTED)
+			end
+		elseif state == STATE_PAUSE then
 			gotoState(STATE_WINDOW)
 		elseif state == STATE_WINDOW then
 			gotoState(STATE_PAUSE)
