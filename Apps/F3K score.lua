@@ -636,21 +636,23 @@ local function loop()
 		if state == STATE_IDLE then
 			winTimer.set(taskWindow)
 
-			-- Automatically start window and flight if launch switch is released
-			if launchPulled then
-				gotoState(STATE_READY)
-			end
-			
 			-- Did we start the window delay timer?
 			if winDelay then
 				winDelay.update()
 				if winDelay.value <= 0 then
 					winDelay = nil
 					system.playBeep(0, 880, 500)
-					gotoState(STATE_WINDOW)
+					if launchSw then
+						gotoState(STATE_READY)
+					else
+						gotoState(STATE_WINDOW)
+					end
 				elseif math.ceil(winDelay.value) ~= math.ceil(winDelay.prev) then
 					playDuration(winDelay.value)
 				end
+			elseif launchPulled then
+				-- Automatically start window and flight if launch switch is released
+				gotoState(STATE_READY)
 			end
 		end
 
