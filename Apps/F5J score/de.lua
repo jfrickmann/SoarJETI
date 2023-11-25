@@ -33,5 +33,6 @@ return {
 	flightTime = "Flugzeit",
 	landingPoints = "Landepunkte",
 	startHeight = "Starthöhe",
-	heightPenalty = "Starthöhe Abzug"
+	heightPenalty = "Starthöhe Abzug",
+	total = "Gesamtpunktzahl"
 }

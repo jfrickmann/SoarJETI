@@ -729,7 +729,7 @@ local function initScores()
 	-- Update form when record changes
 	local function updateRecord()
 		record = scoreLog[browseRecord]
-		form.setTitle(record[2])
+		form.setTitle(record[2] .. " " .. record[1])
 		local tme = math.tointeger(record[3])
 		min = math.floor(tme / 60)
 		sec = tme % 60
@@ -835,17 +835,19 @@ local function initScores()
 		lcd.drawText(x[1], 0, lang.flightTime, FONT_BIG)
 		drawTxtRgt(x[5], 0, string.format("%02i:%02i", min, sec), FONT_BIG)
 		
-		lcd.drawText(x[1], 25, lang.landingPoints, FONT_BIG)
-		drawTxtRgt(x[5], 25, landingPts, FONT_BIG)
+		lcd.drawText(x[1], 24, lang.landingPoints, FONT_BIG)
+		drawTxtRgt(x[5], 24, landingPts, FONT_BIG)
 		
-		lcd.drawText(x[1], 50, lang.startHeight, FONT_BIG)
-		drawTxtRgt(x[5], 50, startHgt, FONT_BIG)
+		lcd.drawText(x[1], 48, lang.startHeight, FONT_BIG)
+		drawTxtRgt(x[5], 48, startHgt, FONT_BIG)
 		
 		local penalty = 0.5 * math.min(200, startHgt) + 3 * math.max(0, startHgt - 200)
-		lcd.drawText(x[1], 75, lang.heightPenalty, FONT_BIG)
-		drawTxtRgt(x[5], 75, string.format("%1.1f", penalty), FONT_BIG)
+		lcd.drawText(x[1], 72, lang.heightPenalty, FONT_BIG)
+		drawTxtRgt(x[5], 72, string.format("%1.1f", penalty), FONT_BIG)
 		
-		lcd.drawText(x[1], 120, record[1], FONT_BIG)
+		local total = 60 * min + sec + landingPts - penalty
+		lcd.drawText(x[1], 96, lang.total, FONT_BIG)
+		drawTxtRgt(x[5], 96, string.format("%1.1f", total), FONT_BIG)
 
 		if editing == 1 then
 			drawInverse(x[2], 0, string.format("%02i", min), FONT_BIG)

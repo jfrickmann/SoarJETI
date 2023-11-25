@@ -33,5 +33,6 @@ return {
 	flightTime = "Flight time",
 	landingPoints = "Landing points",
 	startHeight = "Start height",
-	heightPenalty = "Height penalty"
+	heightPenalty = "Height penalty",
+	total = "Total points"
 }
