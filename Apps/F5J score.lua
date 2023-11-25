@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F5J score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.2"
+local version =		"1.0.3"
 local SCORE_LOG =	"Log/F5J scores.csv"
 
 -- Presistent variables
@@ -363,7 +363,9 @@ local function loop()
 	elseif state == STATE_MOTOR then
 		local mt = motorTimer.value -- Current motor timer value
 		local sayt -- Timer value to announce (we don't have time to say "twenty-something")
-		
+		local hgt = getAlti()
+		startHeight = math.max(startHeight, hgt)
+
 		if mt <= 20 then
 			cnt = 5
 			sayt = mt
@@ -378,12 +380,12 @@ local function loop()
 		if math.floor(motorTimer.prev / cnt) < math.floor(mt / cnt) then
 			system.playNumber(sayt, 0)
 		end
-		
+
 		if not motorOn then -- Motor stopped; start 10 sec. count and record start height
 			state = STATE_GLIDE
 			motorTimer.stop()			
 			offTime = now
-			prevCnt = 1
+			prevCnt = 0
 		end
 
 	elseif state == STATE_GLIDE then
@@ -419,10 +421,11 @@ local function loop()
 			startHeight = 0.0
 		
 		elseif offTime > 0 then
-			-- 10 sec. count after motor off
-			cnt = math.floor(0.001 * (now - offTime))
 			local hgt = getAlti()
 			startHeight = math.max(startHeight, hgt)
+
+			-- 10 sec. count after motor off
+			cnt = math.floor(0.001 * (now - offTime))
 			if cnt > prevCnt then
 				prevCnt = cnt
 				
