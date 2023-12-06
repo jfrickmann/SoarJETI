@@ -11,6 +11,24 @@
                     "hash": "bbade2f03549c5a2635da5d232fb29695489d512",
                     "size": 30119,
                     "url": "https://github.com/jfrickmann/SoarJETI/raw/main/Apps/F5J score.lc"
+                },
+                {
+                    "destination": "Apps/Apps/F5J score/de.lua",
+                    "hash": "65173aa2aa68666f5336808027dd2526b0c8c645",
+                    "size": 1795,
+                    "url": "https://github.com/jfrickmann/SoarJETI/raw/main/Apps/F5J score/de.lua"
+                },
+                {
+                    "destination": "Apps/Apps/F5J score/en.lua",
+                    "hash": "c1611e3613601ac8c725c6f3c7d128379daf6c85",
+                    "size": 1785,
+                    "url": "https://github.com/jfrickmann/SoarJETI/raw/main/Apps/F5J score/en.lua"
+                },
+                {
+                    "destination": "Apps/Apps/F5J score/fr.lua",
+                    "hash": "3b11114bd63c4ccb1180f34692be2ae7507c73b1",
+                    "size": 1885,
+                    "url": "https://github.com/jfrickmann/SoarJETI/raw/main/Apps/F5J score/fr.lua"
                 }
             ],
             "hw": [
