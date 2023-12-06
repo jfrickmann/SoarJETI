@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <title>F3K score</title>
+</head>
+<body>
+ <h1>F3K score</h1>
+ <p><img src="img/F3K.png" alt="F3K score"></p>
+ <h2>Description</h2>
+ <p>Il s'agit d'une application de gestion de scores comprenant toutes les epreuves officielles F3K ainsi que deux epreuves d'entraînement.</p>
+ <p>Elle propose ses propres minuteries implémentées en Lua et ne dépend pas des minuteries intégrées. Par conséquent, si vous voulez tester l'application, je vous conseille de d'abord créer une copie de votre modèle et de supprimer les minuteries que vous avez configurées afin d'éviter les reports de temps en double. Les minuteries de l'application peuvent également être ajoutées à l'écran principal en tant que télémétrie affichée.</p>
+ <p>Elle démarre et arrête la minuterie de vol lorsque vous activez le bouton de lancement. En mode normal, vous activez le lancement pour démarrer la minuterie, et de nouveau pour l'arrêter. En mode "QR", la minuterie redémarre immédiatement lorsque vous relâchez le bouton de lancement, vous permettant ainsi de réaliser des relancements rapides. Par défaut, la minuterie de vol se fige à la fin du temps de travail, vous permettant ainsi d'atterrir et de enregistrer le temps de vol.</p>
+ <p>Pour le Poker et l'epreuve d'entraînement "Relance rapide!", vous pouvez définir le temps de cible avec une molette.</p>
+ <p>Pour l'epreuve 1234, vous recevez des appels de temps supplémentaires avant chaque minute, pour vous aider à décider si vous voulez atterrir à la prochaine minute entière. Elle définit également des temps cibles "intelligents", en fonction des vols déjà enregistrés.</p>
+ <p>Il existe également une fonction qui annonce toutes les 10 secondes le temps de travail restant pour vous aider à décider quand lancer pendant les epreuves "derniers vols".</p>
+ <p>Les scores peuvent être modifiés, vous pouvez ainsi tenir une carte de score électronique avec les temps officiels lors des compétitions.</p>
+ <h2>Utilisation</h2>
+ <p>La vidéo suivante est en anglais.</p>
+ <iframe width="560" height="315" src="https://www.youtube.com/embed/SAaVfNJSD7Y?si=nfwcd_ieUfCfitl7" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+ <p>Vous pouvez télécharger le code source depuis le référentiel <a href="https://github.com/jfrickmann/SoarJETI">GitHub SoarJETI.</a></p>
+</body>
+</html>

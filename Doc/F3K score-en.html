@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <title>F3K score</title>
+</head>
+<body>
+ <h1>F3K score</h1>
+ <p><img src="img/F3K.png" alt="F3K score"></p>
+ <h2>Description</h2>
+ <p>This is a score keeping app with all of the official F3K tasks and two practice tasks.</p>
+ <p>It provides its own timers implemented in Lua, and does not rely on the built-in timers. Therefore, if you want to test the app, it may be a good idea to first make a copy of your model and delete the timers you set up, to avoid duplicate time calls. The timers from the app can also be added to the Main Screen as Displayed Telemetry.</p>
+ <p>It starts and stops the flight timer when you activate the Launch switch. In normal mode, you activate Launch to start the timer, and again to stop it. In "QR" mode, the timer starts again immediately when you release the Launch switch, so you can tip catch and do quick turnarounds. By default, the flight timer freezes at the end of the task window, so you can land and save the flight time.</p>
+ <p>For Poker and the Quick Relaunch practice task, you can set the time target with a dial.</p>
+ <p>For 1234, you get some extra time calls before every minute, to help you decide if you want to land on the next whole minute. It also sets "smart" target times, depending on the already recorded flights.</p>
+ <p>There is also a feature to call out the remaining task window time every 10 sec. to help you decide when to launch during "last flights" rounds.</p>
+ <p>Scores can be saved and edited, so you can keep an electronic score card during contests.</p>
+ <h2>Usage</h2>
+ <iframe width="560" height="315" src="https://www.youtube.com/embed/SAaVfNJSD7Y?si=nfwcd_ieUfCfitl7" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+ <p>You can download the source code from the <a href="https://github.com/jfrickmann/SoarJETI">SoarJETI GitHub repository.</a></p>
+</body>
+</html>

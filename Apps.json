@@ -1,0 +1,34 @@
+{
+    "applications": [
+        {
+            "author": "Jesper Frickmann",
+            "description": {
+                "en": "https://github.com/jfrickmann/SoarJETI/raw/main/Doc/F5J score-en.html"
+            },
+            "files": [
+                {
+                    "destination": "Apps/Apps/F5J score.lc",
+                    "hash": "bbade2f03549c5a2635da5d232fb29695489d512",
+                    "size": 30119,
+                    "url": "https://github.com/jfrickmann/SoarJETI/raw/main/Apps/F5J score.lc"
+                }
+            ],
+            "hw": [
+                678,
+                679,
+                680,
+                652,
+                653,
+                3857,
+                3858
+            ],
+            "id": 0,
+            "name": {
+                "en": "F5J score"
+            },
+            "previewIcon": "https://github.com/jfrickmann/SoarJETI/raw/main/Img/SoarLogo.png",
+            "releaseDate": "Sat Jun 3 00:00:00 2023",
+            "version": "1.0.3"
+        }
+    ]
+}
