@@ -53,6 +53,7 @@ return {
 	K = "K. Große Leiter",
 	L = "L. Nur ein Flug",
 	M = "M. Riesige Leiter",
+	N = "N. Beste flug",
 	Y = "Y. Schnell umdrehen!",
 	Z = "Z. Fliege!"
 }

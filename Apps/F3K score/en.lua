@@ -53,6 +53,7 @@ return {
 	K = "K. Big Ladder",
 	L = "L. One flight only",
 	M = "M. Huge Ladder",
+	N = "N. Best flight",
 	Y = "Y. Quick Relaunch!",
 	Z = "Z. Just Fly!"
 }

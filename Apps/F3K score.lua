@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F3K score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.3"
+local version =		"1.0.4"
 local SCORE_LOG =	"Log/F3K scores.csv"
 
 -- Persistent variables
@@ -93,6 +93,7 @@ local function defineTasks()
 		{ lang.K, 600, 5, 5, true, 4, 2	},
 		{ lang.L, 600, 1, 1, true, 599, 2	},
 		{ lang.M, 900, 3, 3, true, 1, 2	},
+		{ lang.N, 600, -1, 1, false, 599, 1	},
 		{ lang.Y, 0, -1, 8, false, 2, 2	},
 		{ lang.Z, 0, -1, 8, false, 0, 2	}
 	}

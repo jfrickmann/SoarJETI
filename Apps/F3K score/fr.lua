@@ -53,6 +53,7 @@ return {
 	K = "K. Grand incrément",
 	L = "L. Un vol",
 	M = "M. Très grand incrément",
+	N = "N. Le plus long vol",
 	Y = "Y. Relance rapide!",
 	Z = "Z. Volez!"
 }
