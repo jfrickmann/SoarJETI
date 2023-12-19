@@ -78,30 +78,37 @@ local timeDialSteps = { }		-- Steps for various time dial tasks
 local function defineTasks()
 	-- { label, window, launches, scores, final, tgtType, scoreType }
 	tasks = {
-		{ lang.A, 420, -1, 1, false, 300, 2	},
-		{ lang.B1, 420, -1, 2, false, 180, 2	},
-		{ lang.B2, 600, -1, 2, false, 240, 2	},
-		{ lang.C, 0, 8, 8, true, 180, 2	},
-		{ lang.D, 600, 2, 2, true, 300, 2	},
-		{ lang.E1, 600, -1, 3, true, 2, 3	},
-		{ lang.E2, 900, -1, 3, true, 2, 3	},
-		{ lang.F, 600, 6, 3, false, 180, 1	},
-		{ lang.G, 600, -1, 5, false, 120, 1	},
-		{ lang.H, 600, -1, 4, false, 3, 1	},
-		{ lang.I, 600, -1, 3, false, 200, 1	},
-		{ lang.J, 600, -1, 3, false, 180, 2	},
-		{ lang.K, 600, 5, 5, true, 4, 2	},
-		{ lang.L, 600, 1, 1, true, 599, 2	},
-		{ lang.M, 900, 3, 3, true, 1, 2	},
-		{ lang.N, 600, -1, 1, false, 599, 1	},
-		{ lang.Y, 0, -1, 8, false, 2, 2	},
-		{ lang.Z, 0, -1, 8, false, 0, 2	}
+		{ lang.A, 420, -1, 1, false, 300, 2 },
+		{ lang.B1, 420, -1, 2, false, 180, 2 },
+		{ lang.B2, 600, -1, 2, false, 240, 2 },
+		{ lang.C, 0, 7, 7, true, 180, 2 },
+		{ lang.D, 600, 2, 2, true, 300, 2 },
+		{ lang.E1, 600, -1, 3, true, 2, 3 },
+		{ lang.E2, 900, -1, 3, true, 2, 3 },
+		{ lang.F, 600, 6, 3, false, 180, 1 },
+		{ lang.G, 600, -1, 5, false, 120, 1 },
+		{ lang.H, 600, -1, 4, false, 3, 1 },
+		{ lang.I, 600, -1, 3, false, 200, 1 },
+		{ lang.J, 600, -1, 3, false, 180, 2 },
+		{ lang.K, 600, 5, 5, true, 4, 2 },
+		{ lang.L, 600, 1, 1, true, 599, 2 },
+		{ lang.M, 900, 3, 3, true, 1, 2 },
+		{ lang.N, 600, -1, 1, false, 599, 1 },
+		{ lang.Y, 0, -1, 7, false, 2, 2 },
+		{ lang.Z, 0, -1, 7, false, 0, 2 }
 	}
-end
 
-timeDialSteps[6]	= { {30,	5}, {60, 10}, {120, 15}, {210, 30}, {420, 60}, {660, 1} }	-- Poker 10 min.
-timeDialSteps[7]	= { {30, 10}, {90, 15}, {270, 30}, {480, 60}, {960, 1} } 						-- Poker 15 min.
-timeDialSteps[16] = { {15,	5}, {30, 10}, { 60, 15}, {120, 30}, {270, 1} } 							-- QR
+	-- Time steps for dialing time targets in Poker etc.
+	for i, task in ipairs(tasks) do
+		if task[1] == lang.E1 then -- Poker 10 min.
+			timeDialSteps[i]	= { {30,	5}, {60, 10}, {120, 15}, {210, 30}, {420, 60}, {660, 1} }
+		elseif task[1] == lang.E2 then -- Poker 15 min.
+			timeDialSteps[i]	= { {30, 10}, {90, 15}, {270, 30}, {480, 60}, {960, 1} }
+		elseif task[1] == lang.Y then -- Quick Relaunch
+			timeDialSteps[i] = { {15,	5}, {30, 10}, { 60, 15}, {120, 30}, {270, 1} }
+		end
+	end
+end
 
 -------------------------------- Utility functions ---------------------------------
 
