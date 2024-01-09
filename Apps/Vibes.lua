@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------------
---	Vibes on Event																																--
+--	Vibes																																					--
 --	Copyright (C) 2023 Jesper Frickmann																						--
 --																																								--
 --	This program is free software: you can redistribute it and/or modify					--
@@ -17,13 +17,14 @@
 ------------------------------------------------------------------------------------
 
 -- Constants
-local appName =		"Vibes on Event"
+local appName =		"Vibes"
 local author =		"Jesper Frickmann"
 local version =		"1.0.0"
 local profiles = { "Long", "Short", "2short", "3short" }
 local MAX = 15
 
 -- Shared variables
+local lang						-- Language translations
 local items						-- List of items
 local now							-- Current time count
 
@@ -141,9 +142,9 @@ local function keyPress(key)
 end
 
 local function printForm()
-	lcd.drawText( 90, 0, "Profile", FONT_BOLD)
-	lcd.drawText(170, 0, "Delay", FONT_BOLD)
-	lcd.drawText(235, 0, "Repeat", FONT_BOLD)
+	lcd.drawText( 90, 0, lang.profile, FONT_BOLD)
+	lcd.drawText(170, 0, lang.delay, FONT_BOLD)
+	lcd.drawText(235, 0, lang.repeat_, FONT_BOLD)
 end
 
 local function initForm(sf)
@@ -159,7 +160,7 @@ local function initForm(sf)
 		form.setButton(4, ":delete", DISABLED)
 	end
 	
-	form.addLabel({ label = "Switch", font = FONT_BOLD, width = 60 })
+	form.addLabel({ label = lang.switch, font = FONT_BOLD, width = 60 })
 	
 	for i, item in ipairs(items) do
 		item.initForm()
@@ -169,6 +170,10 @@ local function initForm(sf)
 end -- initForm()
 
 local function init()
+	local path = "Apps/" .. appName .. "/"
+	local chunk = loadfile(path .. system.getLocale() .. ".lua") or loadfile(path .. "en.lua")
+	lang = chunk()
+
 	items = { }
 	for idx = 1, MAX do
 		local values = system.pLoad(string.format("Values %02i", idx))
