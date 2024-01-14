@@ -81,7 +81,7 @@ local function defineTasks()
 		{ lang.A, 420, -1, 1, false, 300, 2 },
 		{ lang.B1, 420, -1, 2, false, 180, 2 },
 		{ lang.B2, 600, -1, 2, false, 240, 2 },
-		{ lang.C, 0, 7, 7, true, 180, 2 },
+		{ lang.C, 0, 8, 8, true, 180, 2 },
 		{ lang.D, 600, 2, 2, true, 300, 2 },
 		{ lang.E1, 600, -1, 3, true, 2, 3 },
 		{ lang.E2, 900, -1, 3, true, 2, 3 },
@@ -94,8 +94,8 @@ local function defineTasks()
 		{ lang.L, 600, 1, 1, true, 599, 2 },
 		{ lang.M, 900, 3, 3, true, 1, 2 },
 		{ lang.N, 600, -1, 1, false, 599, 1 },
-		{ lang.Y, 0, -1, 7, false, 2, 2 },
-		{ lang.Z, 0, -1, 7, false, 0, 2 }
+		{ lang.Y, 0, -1, 8, false, 2, 2 },
+		{ lang.Z, 0, -1, 8, false, 0, 2 }
 	}
 
 	-- Time steps for dialing time targets in Poker etc.
