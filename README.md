@@ -6,7 +6,7 @@ This is a collection of score keeping apps for sailplanes. In addition, I have a
 
 - Download the [Zip file](https://github.com/jfrickmann/SoarJETI/archive/refs/heads/main.zip) to your computer and extract it.
 - Connect the transmitter to your computer, and copy everyting in the **Apps** folder over to the **Apps** folder on your transmitter's SD-card.
-- Navigate to **Applications**, **User Applications** on your radio's menus, and add the app(s) to the currently loaded model. They will be added to the transmitter menus as described below for each app. You will notice that there are three files for each app. The biggest size file is the compiled Lua file, and this is what I normally load, because it starts up faster and in fact saves some memory over the uncompiled file. The file that has "$" appended to the name is a smaller file where debug info has been stripped off. It is for older radios with smaller memories.
+- Navigate to **Applications**, **User Applications** on your radio's menus, and add the app(s) to the currently loaded model. They will be added to the transmitter menus as described below for each app. You will notice that there are two files for each app. The first file is a compiled .lc file. It uses less memory and starts up faster. You want to use this one on radios with small memories. The second file is the .lua file with the full source code. It runs fine on radios with big memories.
 
 ## F3K score keeping
 
