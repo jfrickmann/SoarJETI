@@ -1,0 +1,2 @@
+NAME;AUTHOR;VERSION;HARDWARE;DATE;DESCRIPTION;FILES_FOLDERS;ICON;MIN_TXVER
+{"de":"Vibes","en":"Vibes","fr":"Vibes"};Jesper Frickmann;1.0.0;;Tue Jan 16 00:00:00 2024;{"de":"Doc/Vibes-de.html","en":"Doc/Vibes-en.html","fr":"Doc/Vibes-fr.html"};Apps/Vibes.lc,Apps/Vibes.lua,Apps/Vibes;Doc/img/SoarLogo.png;5.6
