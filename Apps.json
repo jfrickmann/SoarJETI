@@ -1,0 +1,172 @@
+{
+    "applications": [
+        {
+            "author": "Jesper Frickmann",
+            "description": {
+                "de": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/Vibes-de.html",
+                "en": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/Vibes-en.html",
+                "fr": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/Vibes-fr.html"
+            },
+            "files": [
+                {
+                    "destination": "Apps/Vibes.lc",
+                    "hash": "cdf3842f65f9cd5566cd26ad830aef9371279d12",
+                    "size": 3401,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/Vibes.lc"
+                },
+                {
+                    "destination": "Apps/Vibes.lua",
+                    "hash": "82d6fbe1d428b0283b6b8955a697fb18b3d0f73b",
+                    "size": 5300,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/Vibes.lua"
+                },
+                {
+                    "destination": "Apps/Vibes/de.lua",
+                    "hash": "8fc18a6dacfc23dd61a36d5be5e9c6c501ccea09",
+                    "size": 1293,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/Vibes/de.lua"
+                },
+                {
+                    "destination": "Apps/Vibes/en.lua",
+                    "hash": "42c074272ec0399bfac79025fef71d9ea688bc8d",
+                    "size": 1293,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/Vibes/en.lua"
+                },
+                {
+                    "destination": "Apps/Vibes/fr.lua",
+                    "hash": "bb765972e6317b0e397929f98ffcf82c568cf773",
+                    "size": 1295,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/Vibes/fr.lua"
+                }
+            ],
+            "hw": [
+                680
+            ],
+            "id": 0,
+            "name": {
+                "en": "Vibes"
+            },
+            "previewIcon": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/img/SoarLogo.png",
+            "releaseDate": "Tue Jan 16 12:00:00 2024",
+            "version": "1.0.0"
+        },
+        {
+            "author": "Jesper Frickmann",
+            "description": {
+                "de": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/F3K score-de.html",
+                "en": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/F3K score-en.html",
+                "fr": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/F3K score-fr.html"
+            },
+            "files": [
+                {
+                    "destination": "Apps/F3K score.lc",
+                    "hash": "ce3c9583b835b9cc639daba09fa51ac6604ef9a8",
+                    "size": 20279,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F3K score.lc"
+                },
+                {
+                    "destination": "Apps/F3K score.lua",
+                    "hash": "785ce22fdcb5ffdf510a3ca69762b33ae45a69bd",
+                    "size": 32998,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F3K score.lua"
+                },
+                {
+                    "destination": "Apps/F3K score/de.lua",
+                    "hash": "215b15f66797a5a1f4765a840316543b2114c040",
+                    "size": 2372,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F3K score/de.lua"
+                },
+                {
+                    "destination": "Apps/F3K score/en.lua",
+                    "hash": "9ba09880166666fdc6581fa060b3f1c7ca743c0c",
+                    "size": 2292,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F3K score/en.lua"
+                },
+                {
+                    "destination": "Apps/F3K score/fr.lua",
+                    "hash": "cb07681a11de58088981048cfa40eaf30944821e",
+                    "size": 2398,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F3K score/fr.lua"
+                }
+            ],
+            "hw": [
+                674,
+                675,
+                676,
+                677,
+                678,
+                679,
+                680,
+                652,
+                653,
+                3857,
+                3858
+            ],
+            "id": 0,
+            "name": {
+                "en": "F3K score"
+            },
+            "previewIcon": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/img/SoarLogo.png",
+            "releaseDate": "Tue Jan 16 12:00:00 2024",
+            "version": "1.0.4"
+        },
+        {
+            "author": "Jesper Frickmann",
+            "description": {
+                "en": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/F5J score-en.html"
+            },
+            "files": [
+                {
+                    "destination": "Apps/F5J score.lc",
+                    "hash": "73b08d7741861fd48dd28457ecda86f923ff1a81",
+                    "size": 15666,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F5J score.lc"
+                },
+                {
+                    "destination": "Apps/F5J score.lua",
+                    "hash": "32072aa8f5f1df3792ab722073afc12f50910d36",
+                    "size": 23739,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F5J score.lua"
+                },
+                {
+                    "destination": "Apps/F5J score/de.lua",
+                    "hash": "65173aa2aa68666f5336808027dd2526b0c8c645",
+                    "size": 1795,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F5J score/de.lua"
+                },
+                {
+                    "destination": "Apps/F5J score/en.lua",
+                    "hash": "c1611e3613601ac8c725c6f3c7d128379daf6c85",
+                    "size": 1785,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F5J score/en.lua"
+                },
+                {
+                    "destination": "Apps/F5J score/fr.lua",
+                    "hash": "3b11114bd63c4ccb1180f34692be2ae7507c73b1",
+                    "size": 1885,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F5J score/fr.lua"
+                }
+            ],
+            "hw": [
+                674,
+                675,
+                676,
+                677,
+                678,
+                679,
+                680,
+                652,
+                653,
+                3857,
+                3858
+            ],
+            "id": 0,
+            "name": {
+                "en": "F5J score"
+            },
+            "previewIcon": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/img/SoarLogo.png",
+            "releaseDate": "Sun Jun 11 12:00:00 2023 GMT",
+            "version": "1.0.3"
+        }
+    ]
+}
