@@ -167,6 +167,46 @@
             "previewIcon": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/img/SoarLogo.png",
             "releaseDate": "Sun Jun 11 12:00:00 2023 GMT",
             "version": "1.0.3"
+        },
+        {
+            "author": "Jesper Frickmann",
+            "description": {
+                "en": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/BatTmr-en.html"
+            },
+            "files": [
+                {
+                    "destination": "Apps/BatTimer.lc",
+                    "hash": "6677c9aadd175919aa278ad4075b917e9940602b",
+                    "size": 6805,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/BatTimer.lc"
+                },
+                {
+                    "destination": "Apps/BatTimer.lua",
+                    "hash": "fc55beed37984383a838885f3f9dad2d4e0e0805",
+                    "size": 9605,
+                    "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/BatTimer.lua"
+                }
+            ],
+            "hw": [
+                674,
+                675,
+                676,
+                677,
+                678,
+                679,
+                680,
+                652,
+                653,
+                3857,
+                3858
+            ],
+            "id": 0,
+            "name": {
+                "en": "Battery Timer"
+            },
+            "previewIcon": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/img/SoarLogo.png",
+            "releaseDate": "Mon Jan 29 12:00:00 2024",
+            "version": "1.0.0"
         }
     ]
 }
