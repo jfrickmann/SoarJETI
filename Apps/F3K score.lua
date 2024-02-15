@@ -943,15 +943,15 @@ local function printTask()
 	lcd.drawText(5, 120, labelInfo, FONT_BIG)
 	
 	local v = system.getTxTelemetry().rx1Voltage or 0.0
-	local w = math.floor(fltBatPct(v) * 80)
+	local w = rgt - xt - 12
 	
 	lcd.setColor(lcd.getFgColor())
-	lcd.drawFilledRectangle (217, 120, w, 20, 85)
-	lcd.drawFilledRectangle (300, 126, 3, 8)
-	lcd.drawRectangle (214, 117, 86, 26, 4)
-	lcd.drawRectangle (215, 118, 84, 24, 3)
+	lcd.drawFilledRectangle (xt + 5, 119, math.floor(fltBatPct(v) * w), 22, 96)
+	lcd.drawRectangle (xt + 3, 117, w + 4, 26, 4)
+	lcd.drawRectangle (xt + 4	, 118, w + 2, 24, 3)
+	lcd.drawFilledRectangle (rgt - 5, 126, 3, 8)
 	setColor()
-	lcd.drawText(242, 120, string.format("%0.1fV", v))
+	lcd.drawText(xt + 0.5 * w - 7, 119, string.format("%0.1f", v), FONT_BIG)
 end -- printTask()
 
 local function initTask()

@@ -136,7 +136,7 @@ local function drawBat(x, y, v)
 	local h = math.floor(lipoPct(v) * (H - 6))
 
 	lcd.setColor(lcd.getFgColor())
-	lcd.drawFilledRectangle (x + 3, y + H - h, W - 6, h, 85)
+	lcd.drawFilledRectangle (x + 3, y + H - h, W - 6, h, 96)
 	lcd.drawFilledRectangle (x + 9, y, W - 18, 3)
 	lcd.drawRectangle (x, y + 3, W, H, 4)
 	lcd.drawRectangle (x + 1, y + 4, W - 2, H - 2, 3)
@@ -551,7 +551,7 @@ local function printTask()
 		h = 12 * i
 		lcd.drawRectangle(2 + 14 * i, 140 - h, 12, h)
 		if rssi >= i then
-			lcd.drawFilledRectangle(2 + 14 * i, 140 - h, 12, h, 85)
+			lcd.drawFilledRectangle(2 + 14 * i, 140 - h, 12, h, 96)
 		end
 	end
 	-- Q%
@@ -559,7 +559,7 @@ local function printTask()
 		h = 12 * i
 		lcd.drawRectangle(96 + 14 * i, 140 - h, 12, h)
 		if txTele.rx1Percent  > 20 * i - 20 then
-			lcd.drawFilledRectangle(96 + 14 * i, 140 - h, 12, h, 85)
+			lcd.drawFilledRectangle(96 + 14 * i, 140 - h, 12, h, 96)
 		end
 	end
 end -- printTask()
