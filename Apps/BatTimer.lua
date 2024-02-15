@@ -131,7 +131,7 @@ local function drawBat(x, y, v, mv)
 	lcd.drawRectangle (x, y + 3, W, H, 4)
 	lcd.drawRectangle (x + 1, y + 4, W - 2, H - 2, 3)
 	lcd.setColor (200, 0, 0)
-	lcd.drawText(x + W / 2 - 10, y + H - 16, string.format("%1.1f", v))
+	lcd.drawText(x + W / 2 - 10, y + H - 16, string.format("%1.1f", mv))
 	setColor()
 	lcd.drawText(x + W / 2 - 10, y + 3, string.format("%1.1f", v))
 end
