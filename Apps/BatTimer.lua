@@ -22,13 +22,17 @@ local author =		"Jesper Frickmann"
 local version =		"1.0.0"
 
 -- Presistent variables
-local timerSwitch		-- Switch for starting and stopping the timer
-local resetSwitch		-- Switch for resetting the timer
+local timerSwitch				-- Switch for starting and stopping the timer
+local resetSwitch				-- Switch for resetting the timer
+local vMin							-- Battery warning level
 
 -- Other variables
-local timer					-- Motor run time
-local keyPress			-- Functions vary by active form
-local printForm 		-- Functions vary by active form
+local timer							-- Motor run time
+local keyPress					-- Functions vary by active form
+local printForm 				-- Functions vary by active form
+local cellValues = { }	-- Battery cell voltage
+local minValues = { }		-- Minimum battery cell voltage
+local tWarnV = 0				-- Timer for battery warning
 
 local lang = system.getLocale()
 
@@ -37,26 +41,39 @@ if lang == "de" then
 		timerSwitch = "Timerschalter",
 		resetSwitch = "Zurücksetzen",
 		startTime = "Anfangszeit (sek.)",
-		saveChanges = "Änderungen speichern?"
+		saveChanges = "Änderungen speichern?",
+		vMin = "Batterie Warnstufe"
 	}
 elseif lang == "fr" then
 	lang = {
 		timerSwitch = "Interrupteur de minuterie",
 		resetSwitch = "Réinitialiser la minuterie",
 		startTime = "Temps initial (sec.)",
-		saveChanges = "Enregistrer les modifications?"
+		saveChanges = "Enregistrer les modifications?",
+		vMin = "Niveau d'alarme de la batterie"
 	}
 else
 		lang = {
 		timerSwitch = "Timer switch",
 		resetSwitch = "Reset timer",
 		startTime = "Start time (sec.)",
-		saveChanges = "Save changes?"
+		saveChanges = "Save changes?",
+		vMin = "Battery warning level"		
 	}
 end
 -------------------------------- Utility functions ---------------------------------
 
 local function void()
+end
+
+-- Set back to default drawing color (undocumented)
+local function setColor()
+	local r, g, b = lcd.getBgColor()
+	if r + g + b < 384 then
+		lcd.setColor(255, 255, 255)
+	else
+		lcd.setColor(0, 0, 0)
+	end
 end
 
 -- LiPo battery pct. from V
@@ -82,8 +99,9 @@ local function getMULi6S()
 end
 
 -- Read flight pack charge pct.
-local function fltBatPct()
+local function fltBatV()
 	local values = { }
+	local low
 	
 	if muli6sId then
 		-- Find values for cells 1-6 and convert to pct.
@@ -93,27 +111,29 @@ local function fltBatPct()
 				table.insert(values, sensor.value)
 			end
 		end
-		-- Did we somehow loose the sensor?
-		if #values == 0 then
-			muli6sId = nil
-		end
+		low = system.getSensorByID(muli6sId, 7).value
 	else
 		getMULi6S()
 	end
 
-	return values
+	return values, low
 end
 
 -- Draw battery cell with charge level
-local function drawBat(x, y, v)
-	local H = 54
+local function drawBat(x, y, v, mv)
+	local H = 60
 	local W = (lcd.width - 32) * 2 / 17
 	local h = math.floor(lipoPct(v) * (H - 6))
-	lcd.drawFilledRectangle (x + 3, y + H - h, W - 6, h, 142)
+
+	lcd.setColor(lcd.getFgColor())
+	lcd.drawFilledRectangle (x + 3, y + H - h, W - 6, h, 85)
 	lcd.drawFilledRectangle (x + 9, y, W - 18, 3)
 	lcd.drawRectangle (x, y + 3, W, H, 4)
 	lcd.drawRectangle (x + 1, y + 4, W - 2, H - 2, 3)
-	lcd.drawText(x + W / 2 - 9, y + H - 17, string.format("%1.1f", v))
+	lcd.setColor (200, 0, 0)
+	lcd.drawText(x + W / 2 - 10, y + H - 16, string.format("%1.1f", v))
+	setColor()
+	lcd.drawText(x + W / 2 - 10, y + 3, string.format("%1.1f", v))
 end
 
 -- Safely read switch as boolean
@@ -222,6 +242,43 @@ end
 
 -- Main loop running all the time
 local function loop()
+	local low
+	cellValues, low = fltBatV()
+	
+	-- Warning?
+	low = low and (low > 0 and 10 * low <= vMin)
+	if low then
+		if tWarnV == 0 then
+			tWarnV = system.getTimeCounter() + 10000
+		end
+		system.setControl (1, 1, 0)
+	else
+		tWarnV = 0
+		system.setControl (1, -1, 0)
+	end
+
+	if tWarnV > 0 and system.getTimeCounter() >= tWarnV then
+		system.playFile("Low_U.wav")
+		tWarnV = 0
+	end
+	
+	-- Min. cell values
+	if #cellValues == 0 then
+		-- Reset if telemetry lost
+		minValues = { }
+	else
+		if #minValues == 0 then
+			for i, v in ipairs(cellValues) do
+				minValues[i] = v
+			end
+		else
+			for i, v in ipairs(cellValues) do
+				minValues[i] = math.min(v, minValues[i])
+			end
+		end
+	end
+
+	-- Update timer
 	if getSwitch(timerSwitch) then
 		timer.run()
 	else
@@ -245,37 +302,40 @@ local function printTeleFull()
 	-- Draw flight battery status
 	local dx = (lcd.width - 32) * 3 / 17
 	local x = 16
-	for i, v in ipairs(fltBatPct()) do
-		drawBat(x, 6, v)
+	for i, v in ipairs(cellValues) do
+		drawBat(x, 6, v, minValues[i])
 		x = x + dx
 	end
 	
+	lcd.setColor(lcd.getFgColor())
+
 	-- Draw signal strength
 	local txTele = system.getTxTelemetry()
 	-- A1/A2
-	lcd.drawText(16, 76, "A", FONT_BOLD)
+	lcd.drawText(16, 86, "A", FONT_BOLD)
 	local rssi = math.max(txTele.RSSI[1], txTele.RSSI[2])
 	if rssi > 1 then
 		rssi = 1 + 0.5 * rssi
 	end
 	for i = 1, 5 do
 		h = 10 * i
-		lcd.drawRectangle(2 + 14 * i, 130 - h, 12, h)
+		lcd.drawRectangle(2 + 14 * i, 140 - h, 12, h)
 		if rssi >= i then
-			lcd.drawFilledRectangle(2 + 14 * i, 130 - h, 12, h, 142)
+			lcd.drawFilledRectangle(2 + 14 * i, 140 - h, 12, h, 85)
 		end
 	end
 	-- Q%
-	lcd.drawText(110, 76, "Q%", FONT_BOLD)
+	lcd.drawText(110, 86, "Q%", FONT_BOLD)
 	for i = 1, 5 do
 		h = 10 * i
-		lcd.drawRectangle(96 + 14 * i, 130 - h, 12, h)
+		lcd.drawRectangle(96 + 14 * i, 140 - h, 12, h)
 		if txTele.rx1Percent  > 20 * i - 20 then
-			lcd.drawFilledRectangle(96 + 14 * i, 130 - h, 12, h, 142)
+			lcd.drawFilledRectangle(96 + 14 * i, 140 - h, 12, h, 85)
 		end
 	end
 	
-	drawTxtRgt(rgt, 86, s2str(timer.value), FONT_MAXI)
+	setColor()
+	drawTxtRgt(rgt, 96, s2str(timer.value), FONT_MAXI)
 end -- printTeleFull()
 
 --------------------------------- Settings form -------------------------------------
@@ -287,6 +347,7 @@ local function initSettings()
 	local ts = timerSwitch
 	local rs = resetSwitch
 	local st = timer.start
+	local vm = vMin
 
 	form.setTitle(appName)
 
@@ -314,6 +375,8 @@ local function initSettings()
 				resetSwitch = rs
 				system.pSave("Start", st)
 				timer.set(st)
+				system.pSave("vMin", vm)
+				vMin = vm
 			end
 		end
 	end
@@ -331,6 +394,10 @@ local function initSettings()
 	form.addRow(2)
 	form.addLabel({ label = lang.startTime, width = 225 })
 	form.addIntbox(st, 0, 2400, 0, 0, 10, function(v) st = v end)
+
+	form.addRow(2)
+	form.addLabel({ label = lang.vMin, width = 225 })
+	form.addIntbox(vm, 30, 42, 33, 1, 1, function(v) vm = v end)
 
 	form.addLink(function() form.reinit(2) end, { label = "About " .. appName })
 end
@@ -376,6 +443,9 @@ local function init()
 	timerSwitch = system.pLoad("TimerSw")
 	resetSwitch = system.pLoad("ResetSw")
 	timer.set(system.pLoad("Start") or 0)
+	vMin = system.pLoad("vMin") or 35
+	system.registerControl (1, "Battery warning", "BtL")
+	system.setControl (1, -1, 0)
 end -- init()
 
 return {init = init, loop = loop, author = author, version = version, name = appName}

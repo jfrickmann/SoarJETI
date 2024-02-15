@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F5J score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.3"
+local version =		"1.0.4"
 local SCORE_LOG =	"Log/F5J scores.csv"
 
 -- Presistent variables
@@ -60,20 +60,28 @@ local setTime = 0						-- Set flight time
 local function void()
 end
 
+-- Set back to default drawing color (undocumented)
+local function setColor()
+	local r, g, b = lcd.getBgColor()
+	if r + g + b < 384 then
+		lcd.setColor(255, 255, 255)
+	else
+		lcd.setColor(0, 0, 0)
+	end
+end
+
 -- Draw inverse text
 local function drawInverse(x, y, txt, font, rgt)
 	local w = lcd.getTextWidth(font, txt)
 	local h = lcd.getTextHeight(font)
-	local rb, gb, bb = lcd.getBgColor()
-	local rf, gf, bf = lcd.getFgColor()
 	
 	if rgt then
 		x = x - w
 	end
 	lcd.drawFilledRectangle(x, y, w, h)
-	lcd.setColor(rb, gb, bb, 255)
+	lcd.setColor(lcd.getBgColor())
 	lcd.drawText(x, y, txt, font)
-	lcd.setColor(rf, gf, bf, 255)
+	setColor()
 end
 
 -- LiPo battery pct. from V
@@ -123,20 +131,25 @@ end
 
 -- Draw battery cell with charge level
 local function drawBat(x, y, v)
-	local h = math.floor(lipoPct(v) * 42)
-	lcd.drawFilledRectangle (x + 3, y + 48 - h, 22, h, 142)
-	lcd.drawFilledRectangle (x + 9, y, 10, 3)
-	lcd.drawRectangle (x, y + 3, 28, 48, 4)
-	lcd.drawRectangle (x + 1, y + 4, 26, 46, 3)
-	lcd.drawText(x + 4, y + 31, string.format("%1.1f", v))
+	local H = 60
+	local W = 32
+	local h = math.floor(lipoPct(v) * (H - 6))
+
+	lcd.setColor(lcd.getFgColor())
+	lcd.drawFilledRectangle (x + 3, y + H - h, W - 6, h, 85)
+	lcd.drawFilledRectangle (x + 9, y, W - 18, 3)
+	lcd.drawRectangle (x, y + 3, W, H, 4)
+	lcd.drawRectangle (x + 1, y + 4, W - 2, H - 2, 3)
+	setColor()
+	lcd.drawText(x + W / 2 - 10, y + 3, string.format("%1.1f", v))
 end
 
 -- Safely read switch as boolean
 local function getSwitch(sw)
-       if not sw then return false end
-       local val = system.getInputsVal(sw)
-       if not val then return false end
-       return (val > 0)
+	 if not sw then return false end
+	 local val = system.getInputsVal(sw)
+	 if not val then return false end
+	 return (val > 0)
 end
 
 -- Safely read altitude
@@ -323,7 +336,7 @@ end
 -- Convert seconds to "mm:ss"
 local function s2str(s)
 	if not s then
-		return "-- -- --"
+		return "- -  - -"
 	end
 	
 	local sign = ""
@@ -505,46 +518,48 @@ local function printTask()
 	local rgt = lcd.width - 20
 	local xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00")
 	local h
-	
-	lcd.drawText(xt, 4, lang.flight, FONT_BIG)
+
+	lcd.drawText(xt, 10, lang.flight, FONT_BIG)
 	if setTime > 0 then
-		drawInverse(rgt, 26, s2str(setTime), FONT_MAXI, true)
+		drawInverse(rgt, 32, s2str(setTime), FONT_MAXI, true)
 	else
-		drawTxtRgt(rgt, 26, s2str(flightTimer.value), FONT_MAXI)
+		drawTxtRgt(rgt, 32, s2str(flightTimer.value), FONT_MAXI)
 	end
 
-	lcd.drawText(xt, 76, lang.motor, FONT_BIG)
-	drawTxtRgt(rgt, 98, s2str(motorTimer.value), FONT_MAXI)
+	lcd.drawText(xt, 82, lang.motor, FONT_BIG)
+	drawTxtRgt(rgt, 104, s2str(motorTimer.value), FONT_MAXI)
 
 	-- Draw flight battery status
 	local x = 16
 	for i, v in ipairs(fltBatPct()) do
 		drawBat(x, 6, v)
-		x = x + 46
+		x = x + 44
 	end
 	
+	lcd.drawText(16, 86, "A", FONT_BOLD)
+	lcd.drawText(110, 86, "Q%", FONT_BOLD)
+	lcd.setColor(lcd.getFgColor())
+
 	-- Draw signal strength
 	local txTele = system.getTxTelemetry()
 	-- A1/A2
-	lcd.drawText(16, 76, "A", FONT_BOLD)
 	local rssi = math.max(txTele.RSSI[1], txTele.RSSI[2])
 	if rssi > 1 then
 		rssi = 1 + 0.5 * rssi
 	end
 	for i = 1, 5 do
-		h = 10 * i
-		lcd.drawRectangle(2 + 14 * i, 130 - h, 12, h)
+		h = 12 * i
+		lcd.drawRectangle(2 + 14 * i, 140 - h, 12, h)
 		if rssi >= i then
-			lcd.drawFilledRectangle(2 + 14 * i, 130 - h, 12, h, 142)
+			lcd.drawFilledRectangle(2 + 14 * i, 140 - h, 12, h, 85)
 		end
 	end
 	-- Q%
-	lcd.drawText(110, 76, "Q%", FONT_BOLD)
 	for i = 1, 5 do
-		h = 10 * i
-		lcd.drawRectangle(96 + 14 * i, 130 - h, 12, h)
+		h = 12 * i
+		lcd.drawRectangle(96 + 14 * i, 140 - h, 12, h)
 		if txTele.rx1Percent  > 20 * i - 20 then
-			lcd.drawFilledRectangle(96 + 14 * i, 130 - h, 12, h, 142)
+			lcd.drawFilledRectangle(96 + 14 * i, 140 - h, 12, h, 85)
 		end
 	end
 end -- printTask()

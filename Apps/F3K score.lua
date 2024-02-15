@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F3K score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.4"
+local version =		"1.0.5"
 local SCORE_LOG =	"Log/F3K scores.csv"
 
 -- Persistent variables
@@ -113,6 +113,30 @@ end
 -------------------------------- Utility functions ---------------------------------
 
 local function void()
+end
+
+-- Set back to default drawing color (undocumented)
+local function setColor()
+	local r, g, b = lcd.getBgColor()
+	if r + g + b < 384 then
+		lcd.setColor(255, 255, 255)
+	else
+		lcd.setColor(0, 0, 0)
+	end
+end
+
+-- Draw inverse text
+local function drawInverse(x, y, txt, font, rgt)
+	local w = lcd.getTextWidth(font, txt)
+	local h = lcd.getTextHeight(font)
+	
+	if rgt then
+		x = x - w
+	end
+	lcd.drawFilledRectangle(x, y, w, h)
+	lcd.setColor(lcd.getBgColor())
+	lcd.drawText(x, y, txt, font)
+	setColor()
 end
 
 -- Safely read switch as boolean
@@ -332,7 +356,7 @@ end
 -- Convert seconds to "mm:ss.s"
 local function s2str(s)
 	if not s then
-		return "-- -- --"
+		return " - -  - -"
 	end
 	
 	local sign = ""
@@ -920,10 +944,13 @@ local function printTask()
 	
 	local v = system.getTxTelemetry().rx1Voltage or 0.0
 	local w = math.floor(fltBatPct(v) * 80)
-	lcd.drawFilledRectangle (217, 120, w, 20, 142)
+	
+	lcd.setColor(lcd.getFgColor())
+	lcd.drawFilledRectangle (217, 120, w, 20, 85)
 	lcd.drawFilledRectangle (300, 126, 3, 8)
 	lcd.drawRectangle (214, 117, 86, 26, 4)
 	lcd.drawRectangle (215, 118, 84, 24, 3)
+	setColor()
 	lcd.drawText(242, 120, string.format("%0.1fV", v))
 end -- printTask()
 
@@ -951,8 +978,6 @@ local function initScores()
 		lcd.getTextWidth(FONT_BIG, "0. 00:"),
 		lcd.getTextWidth(FONT_BIG, "0. 00:00.")
 	}
-	local rb, gb, bb = lcd.getBgColor()
-	local rf, gf, bf = lcd.getFgColor()
 	
 	form.setTitle(lang.noScores)
 
@@ -1122,15 +1147,6 @@ local function initScores()
 		local x = 10 + 100 * (i % 3)
 		local y = 25 * math.floor(i / 3)
 		return x, y
-	end
-
-	local function drawInverse(x, y, txt, font)
-		local w = lcd.getTextWidth(font, txt)
-		local h = lcd.getTextHeight(font)
-		lcd.drawFilledRectangle(x, y, w, h)
-		lcd.setColor(rb, gb, bb, 255)
-		lcd.drawText(x, y, txt, font)
-		lcd.setColor(rf, gf, bf, 255)
 	end
 
 	printForm = function()
