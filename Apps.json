@@ -47,7 +47,7 @@
                 "en": "Vibes"
             },
             "previewIcon": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/img/SoarLogo.png",
-            "releaseDate": "Tue Jan 16 12:00:00 2024",
+            "releaseDate": "Tue Jan 16 12:00:00 2024 GMT",
             "version": "1.0.0"
         },
         {
@@ -60,14 +60,14 @@
             "files": [
                 {
                     "destination": "Apps/F3K score.lc",
-                    "hash": "ce3c9583b835b9cc639daba09fa51ac6604ef9a8",
-                    "size": 20279,
+                    "hash": "9cbf9555a68c0e6a01e9e0b0a95b32ece363d101",
+                    "size": 20447,
                     "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F3K score.lc"
                 },
                 {
                     "destination": "Apps/F3K score.lua",
-                    "hash": "785ce22fdcb5ffdf510a3ca69762b33ae45a69bd",
-                    "size": 32998,
+                    "hash": "936acd47a6e9a94bb8ebd3341d3a871d8fc23b62",
+                    "size": 33262,
                     "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F3K score.lua"
                 },
                 {
@@ -107,7 +107,7 @@
                 "en": "F3K score"
             },
             "previewIcon": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/img/SoarLogo.png",
-            "releaseDate": "Tue Jan 16 12:00:00 2024",
+            "releaseDate": "Tue Jan 16 12:00:00 2024 GMT",
             "version": "1.0.4"
         },
         {
@@ -118,14 +118,14 @@
             "files": [
                 {
                     "destination": "Apps/F5J score.lc",
-                    "hash": "73b08d7741861fd48dd28457ecda86f923ff1a81",
-                    "size": 15666,
+                    "hash": "9b02ec2842eb01de16e040ec395a38c4a9003057",
+                    "size": 15882,
                     "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F5J score.lc"
                 },
                 {
                     "destination": "Apps/F5J score.lua",
-                    "hash": "32072aa8f5f1df3792ab722073afc12f50910d36",
-                    "size": 23739,
+                    "hash": "c650242285e19e2e7631b72f0446357055fa0f1a",
+                    "size": 23961,
                     "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/F5J score.lua"
                 },
                 {
@@ -176,14 +176,14 @@
             "files": [
                 {
                     "destination": "Apps/BatTimer.lc",
-                    "hash": "6677c9aadd175919aa278ad4075b917e9940602b",
-                    "size": 6805,
+                    "hash": "f1157fe1a39fb7ab27ca2d2ccd2035dad7a3fd38",
+                    "size": 8112,
                     "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/BatTimer.lc"
                 },
                 {
                     "destination": "Apps/BatTimer.lua",
-                    "hash": "fc55beed37984383a838885f3f9dad2d4e0e0805",
-                    "size": 9605,
+                    "hash": "818bf7fb0aacadc247ec0dc4794372f5bd060582",
+                    "size": 11304,
                     "url": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Apps/BatTimer.lua"
                 }
             ],
@@ -205,7 +205,7 @@
                 "en": "Battery Timer"
             },
             "previewIcon": "https://raw.githubusercontent.com/jfrickmann/SoarJETI/main/Doc/img/SoarLogo.png",
-            "releaseDate": "Mon Jan 29 12:00:00 2024",
+            "releaseDate": "Mon Jan 29 12:00:00 2024 GMT",
             "version": "1.0.0"
         }
     ]
