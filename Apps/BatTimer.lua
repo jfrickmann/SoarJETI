@@ -136,6 +136,25 @@ local function drawBat(x, y, v, mv)
 	lcd.drawText(x + W / 2 - 10, y + 3, string.format("%1.1f", v))
 end
 
+-- Draw signal bars
+local function drawBars(x, y, dh, value)
+	local dx = 14
+	local dy = 0
+
+	if dh < 0 then
+		dh = -dh
+	else
+		dy = dh
+	end
+
+	for i = 1, math.min(5, math.floor(value)) do
+		lcd.drawFilledRectangle(x + i * dx, y - i * dy, dx - 2, i * dh, 96)
+	end
+	for i = 1, 5 do
+		lcd.drawRectangle(x + i * dx, y - i * dy, dx - 2, i * dh)
+	end
+end
+
 -- Safely read switch as boolean
 local function getSwitch(sw)
 	if not sw then return false end
@@ -307,34 +326,18 @@ local function printTeleFull()
 		x = x + dx
 	end
 	
-	lcd.setColor(lcd.getFgColor())
-
 	-- Draw signal strength
+	lcd.setColor(lcd.getFgColor())
 	local txTele = system.getTxTelemetry()
-	-- A1/A2
-	lcd.drawText(16, 86, "A", FONT_BOLD)
-	local rssi = math.max(txTele.RSSI[1], txTele.RSSI[2])
-	if rssi > 1 then
-		rssi = 1 + 0.5 * rssi
-	end
-	for i = 1, 5 do
-		h = 10 * i
-		lcd.drawRectangle(2 + 14 * i, 140 - h, 12, h)
-		if rssi >= i then
-			lcd.drawFilledRectangle(2 + 14 * i, 140 - h, 12, h, 96)
-		end
-	end
-	-- Q%
-	lcd.drawText(110, 86, "Q%", FONT_BOLD)
-	for i = 1, 5 do
-		h = 10 * i
-		lcd.drawRectangle(96 + 14 * i, 140 - h, 12, h)
-		if txTele.rx1Percent  > 20 * i - 20 then
-			lcd.drawFilledRectangle(96 + 14 * i, 140 - h, 12, h, 96)
-		end
-	end
-	
+	drawBars(2, 117, 6, 0.5 + 0.5 * txTele.RSSI[1])
+	drawBars(2, 118, -6, 0.5 + 0.5 * txTele.RSSI[2])
+	drawBars(96, 147, 12, 0.999 + 0.05 * txTele.rx1Percent)
+
+	-- Text
 	setColor()
+	lcd.drawText(16, 80, "A1", FONT_BOLD)
+	lcd.drawText(16, 132, "A2", FONT_BOLD)
+	lcd.drawText(110, 80, "Q%", FONT_BOLD)
 	drawTxtRgt(rgt, 96, s2str(timer.value), FONT_MAXI)
 end -- printTeleFull()
 
