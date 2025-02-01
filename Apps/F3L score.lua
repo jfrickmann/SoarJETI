@@ -163,6 +163,9 @@ local function readScores()
 		for field in string.gmatch(line, "[^,]+") do
 			fields[#fields + 1] = field
 		end
+		if #fields < 6 then
+			table.insert(fields, 0)
+		end
 		scoreLog[#scoreLog + 1] = fields
 	end
 end -- readScores()
@@ -172,13 +175,18 @@ local function saveScores(addNew)
 	if addNew then
 		-- Build new score record
 		local t = system.getDateTime()
+		local round = 0
+		if #scoreLog > 0 then
+			round = scoreLog[#scoreLog][6] + 1
+		end
 
 		local record = {
 			system.getProperty("Model"),
 			string.format("%04i-%02i-%02i %02i:%02i", t.year, t.mon, t.day, t.hour, t.min),
 			targetTime,
 			score,
-			landingPts
+			landingPts,
+			round
 		}
 		
 		-- Insert record in scoreLog with max. entries
@@ -471,6 +479,11 @@ end -- loop()
 local function printTask()
 	local rgt = lcd.width - 20
 	local xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00")
+	local w = rgt - xt - 6
+	local txTele = system.getTxTelemetry()
+	if txTele.rx1Percent == 0 then
+		txTele.rx1Voltage = 0
+	end
 
 	-- Scores
 	lcd.drawText(20, 0, lang.flightTime, FONT_BIG)
@@ -490,20 +503,16 @@ local function printTask()
 	lcd.drawText(xt, 56, lang.window, FONT_BIG)
 	drawTxtRgt(rgt, 72, s2str(windowTimer.value), FONT_MAXI)
 
-	-- Draw flight battery status
-	local v = system.getTxTelemetry().rx1Voltage or 0.0
-	local w = rgt - xt - 12
-	
+	-- Draw flight battery status	
 	lcd.setColor(lcd.getFgColor())
-	lcd.drawFilledRectangle (xt + 5, 119, math.floor(batteryPct(v) * w), 22, 96)
-	lcd.drawRectangle (xt + 4	, 118, w + 2, 24, 3)
-	lcd.drawRectangle (xt + 3, 117, w + 4, 26, 4)
-	lcd.drawFilledRectangle (rgt - 5, 126, 3, 8)
+	lcd.drawFilledRectangle (xt + 2, 119, math.floor(batteryPct(txTele.rx1Voltage) * w), 22, 96)
+	lcd.drawRectangle (xt + 1	, 118, w + 2, 24, 3)
+	lcd.drawRectangle (xt, 117, w + 4, 26, 4)
+	lcd.drawFilledRectangle (rgt - 2, 126, 3, 8)
 	setColor()
-	lcd.drawText(xt + 0.5 * w - 7, 119, string.format("%0.1f", v), FONT_BIG)
+	lcd.drawText(xt + 0.5 * w - 10, 119, string.format("%0.1f", txTele.rx1Voltage), FONT_BIG)
 
 	-- Draw signal strength
-	local txTele = system.getTxTelemetry()
 	drawBars(12, 117, 5, 0.5 + 0.5 * txTele.RSSI[1])
 	drawBars(12, 118, -5, 0.5 + 0.5 * txTele.RSSI[2])
 	drawBars(110, 142, 10, 0.999 + 0.05 * txTele.rx1Percent)
@@ -634,7 +643,7 @@ end
 local function initScores()
 	local browseRecord = #scoreLog
 	local record
-	local min, sec, targetTime, landingPts
+	local min, sec, targetTime, landingPts, round
 	local editing
 	local changed
 	local x = {
@@ -655,6 +664,7 @@ local function initScores()
 		min = math.floor(tme / 60)
 		sec = tme % 60
 		landingPts = math.tointeger(record[5])
+		round = record[6]
 		changed = false
 	end
 
@@ -713,31 +723,38 @@ local function initScores()
 				if saveChanges == 1 then
 					record[4] = 60 * min + sec
 					record[5] = landingPts
+					record[6] = round
 					saveScores(false)
 				else
 					updateRecord()
 				end
 				setEditing(0)
 			elseif key == KEY_1 then
-				editing = (editing - 2) % 3 + 1
+				editing = (editing - 2) % 4 + 1
 			elseif key == KEY_2 then
-				editing = editing % 3 + 1
+				editing = editing % 4 + 1
 			elseif key == KEY_UP then
 				changed = true
 				if editing == 1 then
-					min = (min + 1) % 100
+					round = round + 1
 				elseif editing == 2 then
-					sec = (sec + 1) % 60
+					min = (min + 1) % 100
 				elseif editing == 3 then
+					sec = (sec + 1) % 60
+				elseif editing == 4 then
 					landingPts = landingUp(landingPts)
 				end
 			elseif key == KEY_DOWN then
 				changed = true
 				if editing == 1 then
-					min = (min - 1) % 100
+					if round > 0 then
+						round = round - 1
+					end
 				elseif editing == 2 then
-					sec = (sec - 1) % 60
+					min = (min - 1) % 100
 				elseif editing == 3 then
+					sec = (sec - 1) % 60
+				elseif editing == 4 then
 					landingPts = landingDown(landingPts)
 				end
 			end
@@ -747,8 +764,8 @@ local function initScores()
 	printForm = function()
 		if browseRecord == 0 then return end
 		
-		lcd.drawText(x[1], 0, lang.target, FONT_BIG)
-		drawTxtRgt(x[5], 0, tostring(math.floor(targetTime / 60 + 0.5)), FONT_BIG)
+		lcd.drawText(x[1], 0, lang.round, FONT_BIG)
+		drawTxtRgt(x[5], 0, string.format("%i", round), FONT_BIG)
 
 		lcd.drawText(x[1], 24, lang.flightTime, FONT_BIG)
 		drawTxtRgt(x[5], 24, string.format("%02i:%02i", min, sec), FONT_BIG)
@@ -759,11 +776,16 @@ local function initScores()
 		lcd.drawText(x[1], 72, lang.total, FONT_BIG)
 		drawTxtRgt(x[5], 72, totalScore(targetTime, 60 * min + sec, landingPts), FONT_BIG)
 		
+		lcd.drawText(x[1], 96, lang.target, FONT_BIG)
+		drawTxtRgt(x[5], 96, tostring(math.floor(targetTime / 60 + 0.5)), FONT_BIG)
+
 		if editing == 1 then
-			drawInverse(x[2], 24, string.format("%02i", min), FONT_BIG)
+			drawInverse(x[5], 0, string.format("%i", round), FONT_BIG, true)
 		elseif editing == 2 then
-			drawInverse(x[3], 24, string.format("%02i", sec), FONT_BIG)
+			drawInverse(x[2], 24, string.format("%02i", min), FONT_BIG)
 		elseif editing == 3 then
+			drawInverse(x[3], 24, string.format("%02i", sec), FONT_BIG)
+		elseif editing == 4 then
 			drawInverse(x[3], 48, string.format("%02i", landingPts), FONT_BIG)
 		end
 	end -- printForm()

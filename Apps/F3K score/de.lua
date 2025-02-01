@@ -38,6 +38,7 @@ return {
 	timeDial = "Nominierung Poker",
 	winCall = "Rahmenzeitschalter",
 	logSize = "Dateigröße",
+	round = "Runde",
 	A = "A. Letzter Flug",
 	B1 = "B. Zwei letzten Flüge 3:00",
 	B2 = "B. Zwei letzten Flüge 4:00",

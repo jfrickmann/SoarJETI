@@ -32,5 +32,6 @@ return {
 	noScores = "Noch keine Flüge!",
 	flightTime = "Flugzeit",
 	landingPoints = "Landepunkte",
-	total = "Gesamtpunke"
+	total = "Gesamtpunke",
+	round = "Runde"
 }

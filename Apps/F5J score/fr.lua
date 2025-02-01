@@ -34,5 +34,6 @@ return {
 	landingPoints = "Points d'atterrissage",
 	startHeight = "Hauteur de lancement",
 	heightPenalty = "Déduction d'hauteur",
-	total = "Total des points"
+	total = "Total des points",
+	round = "Manche"
 }

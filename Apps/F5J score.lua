@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F5J score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.4"
+local version =		"1.0.5"
 local SCORE_LOG =	"Log/F5J scores.csv"
 
 -- Presistent variables
@@ -155,9 +155,11 @@ local function drawBars(x, y, dh, value)
 		dy = dh
 	end
 
+	lcd.setColor(lcd.getFgColor())
 	for i = 1, math.min(5, math.floor(value)) do
 		lcd.drawFilledRectangle(x + i * dx, y - i * dy, dx - 2, i * dh, 96)
 	end
+	setColor()
 	for i = 1, 5 do
 		lcd.drawRectangle(x + i * dx, y - i * dy, dx - 2, i * dh)
 	end
@@ -209,6 +211,9 @@ local function readScores()
 		for field in string.gmatch(line, "[^,]+") do
 			fields[#fields + 1] = field
 		end
+		if #fields < 6 then
+			table.insert(fields, 0)
+		end
 		scoreLog[#scoreLog + 1] = fields
 	end
 end -- readScores()
@@ -220,13 +225,18 @@ local function saveScores(addNew)
 		
 		-- Build new score record
 		local t = system.getDateTime()
+		local round = 0
+		if #scoreLog > 0 then
+			round = scoreLog[#scoreLog][6] + 1
+		end
 
 		local record = {
 			system.getProperty("Model"),
 			string.format("%04i-%02i-%02i %02i:%02i", t.year, t.mon, t.day, t.hour, t.min),
 			flightTime,
 			0,
-			startHeight
+			startHeight,
+			round
 		}
 		
 		-- Insert record in scoreLog with max. entries
@@ -733,7 +743,7 @@ end
 local function initScores()
 	local browseRecord = #scoreLog
 	local record
-	local min, sec, landingPts, startHgt
+	local min, sec, landingPts, startHgt, round
 	local editing
 	local changed
 	local x = {
@@ -754,6 +764,7 @@ local function initScores()
 		sec = tme % 60
 		landingPts = math.tointeger(record[4])
 		startHgt = math.tointeger(record[5])
+		round = record[6]
 		changed = false
 	end
 
@@ -813,35 +824,42 @@ local function initScores()
 					record[3] = 60 * min + sec
 					record[4] = landingPts
 					record[5] = startHgt
+					record[6] = round
 					saveScores(false)
 				else
 					updateRecord()
 				end
 				setEditing(0)
 			elseif key == KEY_1 then
-				editing = (editing - 2) % 4 + 1
+				editing = (editing - 2) % 5 + 1
 			elseif key == KEY_2 then
-				editing = editing % 4 + 1
+				editing = editing % 5 + 1
 			elseif key == KEY_UP then
 				changed = true
 				if editing == 1 then
-					min = (min + 1) % 100
+					round = math.floor(round + 1.1)
 				elseif editing == 2 then
-					sec = (sec + 1) % 60
+					min = (min + 1) % 100
 				elseif editing == 3 then
-					landingPts = (landingPts + 5) % 55
+					sec = (sec + 1) % 60
 				elseif editing == 4 then
+					landingPts = (landingPts + 5) % 55
+				elseif editing == 5 then
 					startHgt = (startHgt + 1) % 1000
 				end
 			elseif key == KEY_DOWN then
 				changed = true
 				if editing == 1 then
-					min = (min - 1) % 100
+					if round > 0 then
+						round = math.floor(round - 0.9)
+					end
 				elseif editing == 2 then
-					sec = (sec - 1) % 60
+					min = (min - 1) % 100
 				elseif editing == 3 then
-					landingPts = (landingPts - 5) % 55
+					sec = (sec - 1) % 60
 				elseif editing == 4 then
+					landingPts = (landingPts - 5) % 55
+				elseif editing == 5 then
 					startHgt = (startHgt - 1) % 1000
 				end
 			end
@@ -851,31 +869,36 @@ local function initScores()
 	printForm = function()
 		if browseRecord == 0 then return end
 		
-		lcd.drawText(x[1], 0, lang.flightTime, FONT_BIG)
-		drawTxtRgt(x[5], 0, string.format("%02i:%02i", min, sec), FONT_BIG)
+		lcd.drawText(x[1], 0, lang.round, FONT_BIG)
+		drawTxtRgt(x[5], 0, tostring(round), FONT_BIG)
 		
-		lcd.drawText(x[1], 24, lang.landingPoints, FONT_BIG)
-		drawTxtRgt(x[5], 24, landingPts, FONT_BIG)
+		lcd.drawText(x[1], 24, lang.flightTime, FONT_BIG)
+		drawTxtRgt(x[5], 24, string.format("%02i:%02i", min, sec), FONT_BIG)
 		
-		lcd.drawText(x[1], 48, lang.startHeight, FONT_BIG)
-		drawTxtRgt(x[5], 48, startHgt, FONT_BIG)
+		lcd.drawText(x[1], 48, lang.landingPoints, FONT_BIG)
+		drawTxtRgt(x[5], 48, landingPts, FONT_BIG)
+		
+		lcd.drawText(x[1], 72, lang.startHeight, FONT_BIG)
+		drawTxtRgt(x[5], 72, startHgt, FONT_BIG)
 		
 		local penalty = 0.5 * math.min(200, startHgt) + 3 * math.max(0, startHgt - 200)
-		lcd.drawText(x[1], 72, lang.heightPenalty, FONT_BIG)
-		drawTxtRgt(x[5], 72, string.format("%1.1f", penalty), FONT_BIG)
+		lcd.drawText(x[1], 96, lang.heightPenalty, FONT_BIG)
+		drawTxtRgt(x[5], 96, string.format("%1.1f", penalty), FONT_BIG)
 		
 		local total = 60 * min + sec + landingPts - penalty
-		lcd.drawText(x[1], 96, lang.total, FONT_BIG)
-		drawTxtRgt(x[5], 96, string.format("%1.1f", total), FONT_BIG)
+		lcd.drawText(x[1], 120, lang.total, FONT_BIG)
+		drawTxtRgt(x[5], 120, string.format("%1.1f", total), FONT_BIG)
 
 		if editing == 1 then
-			drawInverse(x[2], 0, string.format("%02i", min), FONT_BIG)
+			drawInverse(x[5], 0, tostring(round), FONT_BIG, true)
 		elseif editing == 2 then
-			drawInverse(x[3], 0, string.format("%02i", sec), FONT_BIG)
+			drawInverse(x[2], 24, string.format("%02i", min), FONT_BIG)
 		elseif editing == 3 then
-			drawInverse(x[3], 25, string.format("%02i", landingPts), FONT_BIG)
+			drawInverse(x[3], 24, string.format("%02i", sec), FONT_BIG)
 		elseif editing == 4 then
-			drawInverse(x[4], 50, string.format("%03i", startHgt), FONT_BIG)
+			drawInverse(x[3], 48, string.format("%02i", landingPts), FONT_BIG)
+		elseif editing == 5 then
+			drawInverse(x[4], 72, string.format("%03i", startHgt), FONT_BIG)
 		end
 	end -- printForm()
 end

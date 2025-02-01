@@ -19,7 +19,7 @@
 -- Constants
 local appName =		"F3K score"
 local author =		"Jesper Frickmann"
-local version =		"1.0.5"
+local version =		"1.0.6"
 local SCORE_LOG =	"Log/F3K scores.csv"
 
 -- Persistent variables
@@ -223,7 +223,13 @@ end -- setTaskKeys()
 local function saveScores(addNew)
 	if addNew then
 		-- Build new score record
+		local round = 0
+		if #scoreLog > 0 then
+			round = scoreLog[#scoreLog][1] + 1
+		end
+
 		local record = {
+			round,
 			labelTask,
 			system.getProperty ("Model"),
 		}
@@ -915,10 +921,15 @@ end
 local function printTask()
 	local rgt = lcd.width - 10
 	local xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00.0")
+	local w = rgt - xt - 12
 	local x = 5
 	local y = 6
 	local split
-	local rxBt
+	local txTele = system.getTxTelemetry()
+	if txTele.rx1Percent == 0 then
+		txTele.rx1Voltage = 0
+	end
+
 
 	if match(taskScores, 5, 6) then
 		split = 3
@@ -942,16 +953,13 @@ local function printTask()
 	drawTxtRgt(rgt, 76, s2str(winTimer.value), FONT_MAXI)
 	lcd.drawText(5, 120, labelInfo, FONT_BIG)
 	
-	local v = system.getTxTelemetry().rx1Voltage or 0.0
-	local w = rgt - xt - 12
-	
 	lcd.setColor(lcd.getFgColor())
-	lcd.drawFilledRectangle (xt + 5, 119, math.floor(fltBatPct(v) * w), 22, 96)
+	lcd.drawFilledRectangle (xt + 5, 119, math.floor(fltBatPct(txTele.rx1Voltage) * w), 22, 96)
 	lcd.drawRectangle (xt + 3, 117, w + 4, 26, 4)
 	lcd.drawRectangle (xt + 4	, 118, w + 2, 24, 3)
 	lcd.drawFilledRectangle (rgt - 5, 126, 3, 8)
 	setColor()
-	lcd.drawText(xt + 0.5 * w - 7, 119, string.format("%0.1f", v), FONT_BIG)
+	lcd.drawText(xt + 0.5 * w - 7, 119, string.format("%0.1f", txTele.rx1Voltage), FONT_BIG)
 end -- printTask()
 
 local function initTask()
@@ -965,12 +973,7 @@ end
 
 local function initScores()
 	local browseRecord = #scoreLog
-	local record
-	local scores
-	local taskScores
-	local targetType
-	local editing
-	local changed
+	local record, round, scores, taskScores, targetType, editing, changed
 	local selected = 1
 	local min, sec, dec
 	local dx = {
@@ -984,7 +987,8 @@ local function initScores()
 	-- Update form when record changes
 	local function updateRecord()
 		record = scoreLog[browseRecord]
-		local taskName = record[1]
+		round = record[1]
+		local taskName = record[2]
 		form.setTitle(taskName)
 		
 		-- Find task type, number of scores, and target type
@@ -1001,10 +1005,10 @@ local function initScores()
 		-- Copy scores from record
 		scores = { }
 		for i = 1, #record - 4 do
-			scores[i] = tonumber(record[i + 4])
+			scores[i] = tonumber(record[i + 5])
 		end
 	end
-		
+
 	-- Update buttons when editing level changes
 	local function setEditing(ed)
 		if ed == 0 then
@@ -1012,19 +1016,16 @@ local function initScores()
 			form.setButton(2, ":up", ENABLED)
 			form.setButton(3, ":edit", ENABLED)
 			updateRecord()
-		elseif ed == 1 then
-			form.setButton(1, ":left", ENABLED)
-			form.setButton(2, ":right", ENABLED)
-			form.setButton(3, "", ENABLED)
 		elseif ed == 2 then
 			form.setButton(1, ":left", DISABLED)
 			form.setButton(2, ":right", ENABLED)
-		elseif ed == 3 then
-			form.setButton(1, ":left", ENABLED)
-			form.setButton(2, ":right", ENABLED)
-		else -- ed == 4
+		elseif ed == 4 then
 			form.setButton(1, ":left", ENABLED)
 			form.setButton(2, ":right", DISABLED)
+		else -- ed == 1, 3, 5
+			form.setButton(1, ":left", ENABLED)
+			form.setButton(2, ":right", ENABLED)
+			form.setButton(3, "", ENABLED)
 		end
 		editing = ed
 	end
@@ -1033,6 +1034,25 @@ local function initScores()
 		setEditing(0)
 	end
 	
+	-- Stop editing scores
+	local function stopEditing(key)
+		if changed then
+			local saveChanges = 1
+			if key == KEY_ESC then
+				saveChanges = form.question(lang.saveChanges)
+			end
+			if saveChanges == 1 then
+				record[1] = round
+				for i = 1, #scores do
+					record[i + 5] = string.format("%0.1f", scores[i])
+				end
+				record[5] = calcTotalScore(scores, targetType)
+				saveScores(false)
+			end
+		end
+		setEditing(0)
+	end
+
 	local function updateSelected()
 		newValue = 60 * min + sec + 0.1 * dec
 		if scores[selected] ~= newValue then
@@ -1040,7 +1060,7 @@ local function initScores()
 			changed = true
 		end
 	end
-	
+
 	keyPress = function(key)
 		if match(key, KEY_5, KEY_ESC) then
 			form.preventDefault()
@@ -1073,41 +1093,54 @@ local function initScores()
 				min = math.floor(s / 60)
 				s = s - 60 * min
 				sec = math.floor(s)
-				dec = math.floor(10 * (s - sec) + 0.5)
+				s = s - sec
+				dec = math.floor(10 * s + 0.5)
 				updateSelected()
-				setEditing(2)
-			elseif match(key, KEY_1, KEY_DOWN) then
-				selected = (selected - 2) % math.min(#scores + 1, taskScores) + 1
-			elseif match(key, KEY_2, KEY_UP) then
-				selected = selected % math.min(#scores + 1, taskScores) + 1
-			elseif match(key, KEY_5, KEY_ESC) then
-				
-				if changed then
-					local saveChanges = 1
-					
-					if key == KEY_ESC then
-						saveChanges = form.question(lang.saveChanges)
-					end
-
-					if saveChanges == 1 then
-						for i = 1, #scores do
-							record[i + 4] = string.format("%0.1f", scores[i])
-						end
-						record[4] = calcTotalScore(scores, targetType)
-						saveScores(false)
-					end
+				setEditing(3)
+			elseif key == KEY_1 then
+				if selected == 1 then
+					setEditing(5)
+				else 
+					selected = selected - 1
 				end
-				
-				setEditing(0)
+			elseif key == KEY_2 then
+				if selected == math.min(#scores + 1, taskScores) then
+					setEditing(5)
+				else
+					selected = selected + 1
+				end
+			elseif key == KEY_DOWN then
+				scores[selected] = math.max(0, (scores[selected] or 0) - 0.1)
+				changed = true
+			elseif key == KEY_UP then
+				scores[selected] = (scores[selected] or 0) + 0.1
+				changed = true
+			elseif match(key, KEY_5, KEY_ESC) then
+				stopEditing(key)
 			end
-		else
+		elseif editing == 5 then
+			if key == KEY_DOWN then
+				round = math.max(0, round - 1)
+				changed = true
+			elseif key == KEY_UP then
+				round = round + 1
+				changed = true
+			elseif key == KEY_1 then
+					selected = math.min(#scores + 1, taskScores)
+					setEditing(1)
+			elseif key == KEY_2 then
+					selected = 1
+					setEditing(1)
+			elseif match(key, KEY_5, KEY_ESC, KEY_ENTER) then
+				stopEditing(key)
+			end
+		else -- editing == 2, 3, 4
 			if match(key, KEY_5, KEY_ESC, KEY_ENTER) then
 				if key ~= KEY_ESC then
 					updateSelected()
 				end
 				setEditing(1)
 			end
-			
 			if editing == 2 then
 				if key == KEY_2 then
 					updateSelected()
@@ -1144,8 +1177,8 @@ local function initScores()
 	
 	local function scorePos(i)
 		i = i - 1
-		local x = 10 + 100 * (i % 3)
-		local y = 25 * math.floor(i / 3)
+		local x = 10 + 105 * (i % 3)
+		local y = 24 + 24 * math.floor(i / 3)
 		return x, y
 	end
 
@@ -1153,18 +1186,23 @@ local function initScores()
 		if browseRecord == 0 then return end
 		
 		local x, y
-		
+		local x1 = 10 + lcd.getTextWidth(FONT_BIG, lang.round .. " ")
+
+		lcd.drawText(10, 0, string.format("%s %i", lang.round, round), FONT_BIG)
+		lcd.drawText(11, 0, string.format("%s %i", lang.round, round), FONT_BIG)
+		drawTxtRgt(lcd.width - 20, 0, tostring(record[4]), FONT_BIG)
+		drawTxtRgt(lcd.width - 21, 0, tostring(record[4]), FONT_BIG)
+
 		for i = 1, taskScores do
 			x, y = scorePos(i)
 			lcd.drawText(x, y, string.format("%i. %s", i, s2str(scores[i])), FONT_BIG)
 		end
 			
-		y = y + 25
-		lcd.drawText(10, y, string.format(lang.total, tonumber(record[4])), FONT_BIG)	
+		y = y + 24
+		lcd.drawText(10, y, string.format(lang.total, tonumber(record[5])), FONT_BIG)	
 
 		y = 120
-		lcd.drawText(10, y, tostring(record[2]), FONT_BIG)
-		drawTxtRgt(lcd.width - 10, y, tostring(record[3]), FONT_BIG)
+		lcd.drawText(10, y, tostring(record[3]), FONT_BIG)
 		
 		x, y = scorePos(selected)
 		if editing == 1 then
@@ -1175,6 +1213,8 @@ local function initScores()
 			drawInverse(x + dx[2], y, string.format("%02i", sec), FONT_BIG)
 		elseif editing == 4 then
 			drawInverse(x + dx[3], y, dec, FONT_BIG)
+		elseif editing == 5 then
+			drawInverse(x1, 0, string.format("%i", round), FONT_BIG)
 		end
 	end
 end
@@ -1267,6 +1307,9 @@ local function init()
 		local fields = { }
 		for field in string.gmatch(line, "[^,]+") do
 			fields[#fields + 1] = field
+		end
+		if tonumber(fields[1]) == nil then
+			table.insert(fields, 1, 0)
 		end
 		scoreLog[#scoreLog + 1] = fields
 	end

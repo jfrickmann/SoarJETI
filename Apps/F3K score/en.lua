@@ -38,6 +38,7 @@ return {
 	timeDial = "Time dial for Poker",
 	winCall = "Window time switch",
 	logSize = "Score log size",
+	round = "Round",
 	A = "A. Last flight",
 	B1 = "B. Two last 3:00",
 	B2 = "B. Two last 4:00",

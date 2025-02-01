@@ -38,6 +38,7 @@ return {
 	timeDial = "Molette de temps cible",
 	winCall = "Report temps de travail",
 	logSize = "Taille du fichier",
+	round = "Manche",
 	A = "A. Dernier vol",
 	B1 = "B. Deux derniers vols 3:00",
 	B2 = "B. Deux derniers vols 4:00",

@@ -32,5 +32,6 @@ return {
 	noScores = "No scores yet!",
 	flightTime = "Flight time",
 	landingPoints = "Landing pts.",
-	total = "Total points"
+	total = "Total points",
+	round = "Round"
 }

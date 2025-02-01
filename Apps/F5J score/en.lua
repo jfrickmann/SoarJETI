@@ -34,5 +34,6 @@ return {
 	landingPoints = "Landing points",
 	startHeight = "Start height",
 	heightPenalty = "Height penalty",
-	total = "Total points"
+	total = "Total points",
+	round = "Round"
 }
