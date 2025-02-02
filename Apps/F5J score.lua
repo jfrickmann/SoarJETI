@@ -54,6 +54,13 @@ local scoreLog							-- List of previous scores
 local muli6sId							-- Sensor id for MULi6S battery sensor
 local nxtBatWarning = 0			-- Time stamp for next battery warning
 local setTime = 0						-- Set flight time
+local lcdw									-- Work around lcd.width issue
+
+if string.find(system.getDeviceType(), "24 II") then
+	lcdw = 320
+else
+	lcdw = lcd.width - 10
+end
 
 -------------------------------- Utility functions ---------------------------------
 
@@ -544,7 +551,7 @@ end -- loop()
 ----------------------------------- Task form ---------------------------------------
 
 local function printTask()
-	local rgt = lcd.width - 20
+	local rgt = lcdw - 10
 	local xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00")
 	local h
 

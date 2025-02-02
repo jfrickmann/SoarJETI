@@ -47,6 +47,13 @@ local landingPts						-- Landing points
 local activeSubForm					-- Currently active sub form
 local scoreLog							-- List of previous scores
 local taskEntered						-- Task menu has been entered
+local lcdw									-- Work around lcd.width issue
+
+if string.find(system.getDeviceType(), "24 II") then
+	lcdw = 320
+else
+	lcdw = lcd.width - 10
+end
 
 -------------------------------- Utility functions ---------------------------------
 
@@ -477,7 +484,7 @@ end -- loop()
 ----------------------------------- Task form ---------------------------------------
 
 local function printTask()
-	local rgt = lcd.width - 20
+	local rgt = lcdw - 10
 	local xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00")
 	local w = rgt - xt - 6
 	local txTele = system.getTxTelemetry()
@@ -486,16 +493,16 @@ local function printTask()
 	end
 
 	-- Scores
-	lcd.drawText(20, 0, lang.flightTime, FONT_BIG)
-	drawTxtRgt(xt - 25, 0, s2str(score), FONT_BIG)
-	lcd.drawText(20, 28, lang.landingPoints, FONT_BIG)
+	lcd.drawText(10, 0, lang.flightTime, FONT_BIG)
+	drawTxtRgt(xt - 30, 0, s2str(score), FONT_BIG)
+	lcd.drawText(10, 28, lang.landingPoints, FONT_BIG)
 	if state == STATE_PAUSE then
-		drawInverse(xt - 25, 28, landingPts, FONT_BIG, true)
+		drawInverse(xt - 30, 28, landingPts, FONT_BIG, true)
 	else
-		drawTxtRgt(xt - 25, 28, landingPts, FONT_BIG)
+		drawTxtRgt(xt - 30, 28, landingPts, FONT_BIG)
 	end
-	lcd.drawText(20, 56, lang.total, FONT_BIG)
-	drawTxtRgt(xt - 25, 56, totalScore(targetTime, score, landingPts), FONT_BIG)
+	lcd.drawText(10, 56, lang.total, FONT_BIG)
+	drawTxtRgt(xt - 30, 56, totalScore(targetTime, score, landingPts), FONT_BIG)
 	
 	-- Timers
 	lcd.drawText(xt, 0, lang.flight, FONT_BIG)
@@ -513,9 +520,9 @@ local function printTask()
 	lcd.drawText(xt + 0.5 * w - 10, 119, string.format("%0.1f", txTele.rx1Voltage), FONT_BIG)
 
 	-- Draw signal strength
-	drawBars(12, 117, 5, 0.5 + 0.5 * txTele.RSSI[1])
-	drawBars(12, 118, -5, 0.5 + 0.5 * txTele.RSSI[2])
-	drawBars(110, 142, 10, 0.999 + 0.05 * txTele.rx1Percent)
+	drawBars(0, 117, 5, 0.5 + 0.5 * txTele.RSSI[1])
+	drawBars(0, 118, -5, 0.5 + 0.5 * txTele.RSSI[2])
+	drawBars(xt - 114, 142, 10, 0.999 + 0.05 * txTele.rx1Percent)
 end -- printTask()
 
 local function initTask()

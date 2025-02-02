@@ -44,6 +44,13 @@ local labelInfo							-- Info label on screen
 local labelTmr							-- Label before flight timer
 local activeSubForm					-- Currently active sub form
 local keyPress, printForm 	-- Functions vary by active form
+local lcdw									-- Work around lcd.width issue
+
+if string.find(system.getDeviceType(), "24 II") then
+	lcdw = 320
+else
+	lcdw = lcd.width - 10
+end
 
 -- Common variables for score keeping
 local tasks									-- Table with task definitions
@@ -919,7 +926,7 @@ local function keyPressTask(key)
 end
 
 local function printTask()
-	local rgt = lcd.width - 10
+	local rgt = lcdw - 5
 	local xt = rgt - lcd.getTextWidth(FONT_MAXI, "00:00.0")
 	local w = rgt - xt - 12
 	local x = 5
@@ -1175,23 +1182,24 @@ local function initScores()
 		end
 	end
 	
+	local spw = 0.5 * (lcdw - lcd.getTextWidth(FONT_BIG, string.format("%i. %s", 0, s2str(0)))) - 10
 	local function scorePos(i)
 		i = i - 1
-		local x = 10 + 105 * (i % 3)
+		local x = 10 + spw * (i % 3)
 		local y = 24 + 24 * math.floor(i / 3)
 		return x, y
 	end
 
 	printForm = function()
 		if browseRecord == 0 then return end
-		
+
 		local x, y
 		local x1 = 10 + lcd.getTextWidth(FONT_BIG, lang.round .. " ")
 
 		lcd.drawText(10, 0, string.format("%s %i", lang.round, round), FONT_BIG)
 		lcd.drawText(11, 0, string.format("%s %i", lang.round, round), FONT_BIG)
-		drawTxtRgt(lcd.width - 20, 0, tostring(record[4]), FONT_BIG)
-		drawTxtRgt(lcd.width - 21, 0, tostring(record[4]), FONT_BIG)
+		drawTxtRgt(lcdw - 10, 0, tostring(record[4]), FONT_BIG)
+		drawTxtRgt(lcdw - 11, 0, tostring(record[4]), FONT_BIG)
 
 		for i = 1, taskScores do
 			x, y = scorePos(i)
