@@ -31,8 +31,9 @@ local vMin									-- Battery warning level
 -- Program states
 local STATE_INITIAL = 0		 	-- Before starting the task
 local STATE_PAUSE = 1		 		-- Task window paused, not flying
-local STATE_WINDOW = 2			-- Task window started, not flying
-local STATE_FLYING = 3			-- Flying
+local STATE_WINDELAY = 2		-- Delay before starting the window with F3
+local STATE_WINDOW = 3			-- Task window started, not flying
+local STATE_FLYING = 4			-- Flying
 local state = STATE_INITIAL	-- Current program state
 
 -- Variables
@@ -370,7 +371,7 @@ local function setTaskKeys()
 
 	if state == STATE_FLYING or windowTimer.value <= 0 then
 		form.setButton(3, ":timer", DISABLED)
-	elseif state == STATE_WINDOW then
+	elseif state == STATE_WINDOW or state == STATE_WINDELAY then
 		form.setButton(3, ":timer", HIGHLIGHTED)
 	else
 		form.setButton(3, ":timer", ENABLED)
@@ -396,17 +397,24 @@ end
 
 -- Handle transitions between program states
 local function gotoState(newState)
+	if state == STATE_WINDELAY then
+		windowTimer.stop()
+		windowTimer.set(winTime)
+	end
+	
 	state = newState
 	
 	if taskEntered then
-		if state == STATE_INITIAL then
-			score = 0
-			landingPts = 0
-		end
-	
-		if state < STATE_WINDOW then
+		if state < STATE_WINDELAY then
 			windowTimer.stop()
+			if state == STATE_INITIAL then
+				score = 0
+				landingPts = 0
+			end
 		else
+			if state == STATE_WINDELAY then
+				windowTimer.set(10.1)
+			end
 			windowTimer.run()
 		end
 	end
@@ -447,14 +455,21 @@ local function loop()
 	end
 
 	if state == STATE_INITIAL then
-		windowTimer.start = winTime
-		windowTimer.set(windowTimer.start)
-		flightTimer.start = targetTime
+		windowTimer.set(winTime)
+		flightTimer.set(targetTime)
+	elseif state == STATE_WINDELAY then
+		if windowTimer.value <= 0 then
+			system.playBeep(0, 880, 500)
+			gotoState(STATE_WINDOW)
+		elseif math.ceil(windowTimer.value) ~= math.ceil(windowTimer.prev) then
+			playDuration(windowTimer.value)
+		end
 	end
 	
 	if state <= STATE_WINDOW then
 		flightTimer.set(flightTimer.start)
-		if (timerSw and not prevTimerSw) and (state == STATE_WINDOW or (state == STATE_INITIAL and not taskEntered)) then
+
+		if (timerSw and not prevTimerSw) then
 			playDuration(flightTimer.start)
 			gotoState(STATE_FLYING)
 		end
@@ -471,13 +486,12 @@ local function loop()
 		end
 	end
 	
-	if state > STATE_PAUSE then
+	if state > STATE_WINDELAY then
 		if windowTimer.value <= 0 then
 			recordScore(flightTime)
 			gotoState(STATE_PAUSE)
 		end
 	end
-
 	prevTimerSw = timerSw
 end -- loop()
 
@@ -538,7 +552,11 @@ local function initTask()
 			elseif key == KEY_2 then
 				form.reinit(3)
 			elseif key == KEY_3 then
-				gotoState(STATE_WINDOW)
+				gotoState(STATE_WINDELAY)
+			end
+		elseif state == STATE_WINDELAY then
+			if key == KEY_3 then
+				gotoState(STATE_INITIAL)
 			end
 		elseif state == STATE_PAUSE then
 			if key == KEY_3 and windowTimer.value > 0 then
