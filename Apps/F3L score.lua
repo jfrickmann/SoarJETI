@@ -811,7 +811,7 @@ local function initScores()
 		elseif editing == 3 then
 			drawInverse(x[3], 24, string.format("%02i", sec), FONT_BIG)
 		elseif editing == 4 then
-			drawInverse(x[3], 48, string.format("%02i", landingPts), FONT_BIG)
+			drawInverse(x[5], 48, string.format("%02i", landingPts), FONT_BIG, true)
 		end
 	end -- printForm()
 end
