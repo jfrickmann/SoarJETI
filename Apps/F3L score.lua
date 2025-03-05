@@ -423,9 +423,6 @@ local function gotoState(newState)
 		flightTimer.run()
 	else
 		flightTimer.stop()
-	end
- 
-	if state <= STATE_WINDOW then
 		flightTimer.set(targetTime)
 	end
 	
