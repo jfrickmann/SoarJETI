@@ -425,6 +425,10 @@ local function gotoState(newState)
 		flightTimer.stop()
 	end
  
+	if state <= STATE_WINDOW then
+		flightTimer.set(targetTime)
+	end
+	
 	if activeSubForm == 1 then
 		setTaskKeys()
 	end
@@ -466,13 +470,10 @@ local function loop()
 		end
 	end
 	
-	if state <= STATE_WINDOW then
-		flightTimer.set(flightTimer.start)
-
-		if (timerSw and not prevTimerSw) then
-			playDuration(flightTimer.start)
-			gotoState(STATE_FLYING)
-		end
+	if state <= STATE_WINDOW and timerSw and not prevTimerSw and windowTimer.value > 10 then
+		flightTimer.set(math.min(flightTimer.start, windowTimer.value))
+		playDuration(flightTimer.value)
+		gotoState(STATE_FLYING)
 	end
 	
 	if state == STATE_FLYING then
@@ -486,11 +487,10 @@ local function loop()
 		end
 	end
 	
-	if state > STATE_WINDELAY then
-		if windowTimer.value <= 0 then
-			recordScore(flightTime)
-			gotoState(STATE_PAUSE)
-		end
+	if state > STATE_WINDELAY and windowTimer.value <= 0 then
+		system.playBeep(0, 880, 500)
+		recordScore(flightTime)
+		gotoState(STATE_PAUSE)
 	end
 	prevTimerSw = timerSw
 end -- loop()
