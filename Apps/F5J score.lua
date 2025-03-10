@@ -114,7 +114,7 @@ local function getMULi6S()
 end
 
 -- Read flight pack charge pct.
-local function fltBatPct()
+local function getFltBat()
 	local values = { }
 	
 	if muli6sId then
@@ -137,18 +137,17 @@ local function fltBatPct()
 end
 
 -- Draw battery cell with charge level
-local function drawBat(x, y, v)
+local function drawBat(x, y, v, w)
 	local H = 60
-	local W = 32
 	local h = math.floor(lipoPct(v) * (H - 6))
 
 	lcd.setColor(lcd.getFgColor())
-	lcd.drawFilledRectangle (x + 3, y + H - h, W - 6, h, 96)
-	lcd.drawFilledRectangle (x + 9, y, W - 18, 3)
-	lcd.drawRectangle (x, y + 3, W, H, 4)
-	lcd.drawRectangle (x + 1, y + 4, W - 2, H - 2, 3)
+	lcd.drawFilledRectangle (x + 3, y + H - h, w - 6, h, 96)
+	lcd.drawFilledRectangle (x + 9, y, w - 18, 3)
+	lcd.drawRectangle (x, y + 3, w, H, 4)
+	lcd.drawRectangle (x + 1, y + 4, w - 2, H - 2, 3)
 	setColor()
-	lcd.drawText(x + W / 2 - 10, y + 3, string.format("%1.1f", v))
+	lcd.drawText(x + w / 2 - 10, y + 3, string.format("%1.1f", v))
 end
 
 -- Draw signal bars
@@ -567,9 +566,13 @@ local function printTask()
 
 	-- Draw flight battery status
 	local x = 16
-	for i, v in ipairs(fltBatPct()) do
-		drawBat(x, 6, v)
-		x = x + 44
+	local fltBat = getFltBat()
+	local a = 164 / (11 * #fltBat - 3)
+	local dx = math.floor(11 * a + 0.5)
+	local w = math.min(40, math.floor(8 * a + 0.5))
+	for i, v in ipairs(fltBat) do
+		drawBat(x, 6, v, w)
+		x = x + dx
 	end
 	
 	lcd.drawText(16, 84, "A1", FONT_BOLD)
