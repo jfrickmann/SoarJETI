@@ -96,6 +96,15 @@ local function readPersistent()
 	switch = system.pLoad("Switch")
 end
 
+-- Save sensor values to the file
+local function saveValues()
+	local file = io.open(logFile, "w+")
+	for i, value in ipairs(values) do
+		io.write(file, value, "\n")
+	end
+	io.close(file)
+end
+
 ------------------------------------ Business --------------------------------------
 
 -- Main loop running all the time
@@ -113,12 +122,7 @@ local function loop()
 			i = i + 1
 		end
 		values[i] = getSensor()
-
-		local file = io.open(logFile, "w+")
-		for i, value in ipairs(values) do
-			io.write(file, value, "\n")
-		end
-		io.close(file)
+		saveValues()
 	end
 
 	prevSw = sw
@@ -144,10 +148,14 @@ local function initMain()
 	keyPress = function(key)
 		if key == KEY_1 then
 			form.reinit(2)
+		elseif key == KEY_2 then
+			values = { }
+			saveValues()
 		end
 	end
 	
 	form.setButton(1, ":tools", ENABLED)
+	form.setButton(2, ":delete", ENABLED)
 	printForm = printValues
 	form.setTitle(appName)
 end
@@ -206,6 +214,7 @@ local function initSettings()
 			sensor = nil
 		end
 		values = { }
+		saveValues()
 	end
 	
 	form.addRow(2)
