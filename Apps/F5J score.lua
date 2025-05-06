@@ -774,7 +774,7 @@ local function initScores()
 		sec = tme % 60
 		landingPts = math.tointeger(record[4])
 		startHgt = math.tointeger(record[5])
-		round = record[6]
+		round = math.tointeger(record[6])
 		changed = false
 	end
 
@@ -847,7 +847,7 @@ local function initScores()
 			elseif key == KEY_UP then
 				changed = true
 				if editing == 1 then
-					round = math.floor(round + 1.1)
+					round = round + 1
 				elseif editing == 2 then
 					min = (min + 1) % 100
 				elseif editing == 3 then
@@ -861,7 +861,7 @@ local function initScores()
 				changed = true
 				if editing == 1 then
 					if round > 0 then
-						round = math.floor(round - 0.9)
+						round = round - 1
 					end
 				elseif editing == 2 then
 					min = (min - 1) % 100

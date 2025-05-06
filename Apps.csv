@@ -1,5 +1,7 @@
 NAME;AUTHOR;VERSION;HARDWARE;DATE;DESCRIPTION;FILES_FOLDERS;ICON;MIN_TXVER
-{"en":"Vibes"};Jesper Frickmann;1.0.0;680;Tue Jan 16 12:00:00 2024 GMT;{"de":"Doc/Vibes-de.html","en":"Doc/Vibes-en.html","fr":"Doc/Vibes-fr.html"};Apps/Vibes.lc,Apps/Vibes.lua,Apps/Vibes;Doc/img/SoarLogo.png;5.6
-{"en":"F3K score"};Jesper Frickmann;1.0.4;674,675,676,677,678,679,680,652,653,3857,3858;Tue Jan 16 12:00:00 2024 GMT;{"de":"Doc/F3K score-de.html","en":"Doc/F3K score-en.html","fr":"Doc/F3K score-fr.html"};Apps/F3K score.lc,Apps/F3K score.lua,Apps/F3K score;Doc/img/SoarLogo.png;5.6
-{"en":"F5J score"};Jesper Frickmann;1.0.3;674,675,676,677,678,679,680,652,653,3857,3858;Sun Jun 11 12:00:00 2023 GMT;{"en":"Doc/F5J score-en.html"};Apps/F5J score.lc,Apps/F5J score.lua,Apps/F5J score;Doc/img/SoarLogo.png;5.6
-{"en":"Battery Timer"};Jesper Frickmann;1.0.0;674,675,676,677,678,679,680,652,653,3857,3858;Mon Jan 29 12:00:00 2024;{"en":"Doc/BatTmr-en.html"};Apps/BatTimer.lc,Apps/BatTimer.lua;Doc/img/SoarLogo.png;5.6
+{"en":"F3K score"};Jesper Frickmann;1.0.6;674,675,676,677,678,679,680,652,653,3857,3858;Thu Apr 24 00:00:00 2025;{"de":"Doc/F3K score-de.html","en":"Doc/F3K score-en.html","fr":"Doc/F3K score-fr.html"};Apps/F3K score.lc,Apps/F3K score.lua,Apps/F3K score;Doc/img/SoarLogo.png;5.8
+{"en":"F3L score"};Jesper Frickmann;1.0.0;674,675,676,677,678,679,680,652,653,3857,3858;Sat Mar 15 00:00:00 2025;{"en":"Doc/F3L score-en.html"};Apps/F3L score.lua,Apps/F3L score.lc,Apps/F3L score;Doc/img/SoarLogo.png;5.8
+{"en":"F5J score"};Jesper Frickmann;1.0.5;674,675,676,677,678,679,680,652,653,3857,3858;Sun Mar 9 00:00:00 2025;{"en":"Doc/F5J score-en.html"};Apps/F5J score.lc,Apps/F5J score.lua,Apps/F5J score;Doc/img/SoarLogo.png;5.8
+{"en":"Battery Timer"};Jesper Frickmann;1.0.0;674,675,676,677,678,679,680,652,653,3857,3858;Sun Feb 25 00:00:00 2024;{"en":"Doc/BatTmr-en.html"};Apps/BatTimer.lc,Apps/BatTimer.lua;Doc/img/SoarLogo.png;5.8
+{"en":"Sensor Log"};Jesper Frickmann;1.0.0;674,675,676,677,678,679,680,652,653,3857,3858;Wed Apr 30 00:00:00 2025;{"en":"Doc/SensorLog-en.html"};Apps/SensorLog.lua,Apps/SensorLog.lc,Apps/SensorLog;Doc/img/SoarLogo.png;5.8
+{"en":"Vibes"};Jesper Frickmann;1.0.0;680;Tue Jan 16 12:00:00 2024;{"de":"Doc/Vibes-de.html","en":"Doc/Vibes-en.html","fr":"Doc/Vibes-fr.html"};Apps/Vibes.lc,Apps/Vibes.lua,Apps/Vibes;Doc/img/SoarLogo.png;5.8

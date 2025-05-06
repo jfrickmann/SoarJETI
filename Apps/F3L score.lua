@@ -686,7 +686,7 @@ local function initScores()
 		min = math.floor(tme / 60)
 		sec = tme % 60
 		landingPts = math.tointeger(record[5])
-		round = record[6]
+		round = math.tointeger(record[6])
 		changed = false
 	end
 
